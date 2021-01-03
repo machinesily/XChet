@@ -2,7 +2,7 @@
 	<view>
 		<view class="status_bar"></view>
 		<TopBar class="top-bar">
-			<image src="../../static/img/test.png" slot="left" class="mine" />
+			<navigator url="../userHome/userHome" slot="left" class="mine" hover-class="none"><image src="../../static/img/test.png"/></navigator>
 			<image src="../../static/img/search.png" slot="right" class="serach" @click="search"/>
 			<image src="../../static/img/add.png" slot="right" class="add" />
 		</TopBar>
@@ -69,11 +69,13 @@ export default {
 	.mine {
 		width: 68rpx;
 		height: 68rpx;
-		border-radius: $uni-border-radius-base;
-		margin: 0 $uni-spacing-col-base;
-		float: left;
-		left: 32rpx;
-		margin-top: 10rpx;
+		padding-top: 10rpx;
+		margin-left: $uni-spacing-row-base;
+		image{
+			width: 68rpx;
+			height: 68rpx;
+			border-radius: $uni-border-radius-base;
+		}
 	}
 	.logo {
 		height: 42rpx;

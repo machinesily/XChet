@@ -1,18 +1,19 @@
 {
 	"pages": [{
-			"path": "pages/sign/sign",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTextStyle": "black"
-			}
-		},
-		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationStyle": "custom",
 				"navigationBarTextStyle": "black"
 			}
 		},
+		{
+			"path": "pages/sign/sign",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		
 		{
 			"path": "pages/signUp/signUp",
 			"style": {

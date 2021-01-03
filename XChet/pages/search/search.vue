@@ -4,7 +4,7 @@
 		<view class="topBar">
 			<view class="search-wrapper">
 				<input type="serach" placeholder="搜索用户/群" class="search" placeholder-style="color#aaa;" @input="search" />
-				<image src="../../static/img/search.png" class="search-img"></image>
+				<image src="../../static/img/search.png" class="search-img"/>
 			</view>
 			<view class="cancel-wrapper" @click="back"><span class="cancel">取消</span></view>
 		</view>
@@ -12,7 +12,7 @@
 			<view class="user">
 				<view class="title" v-show="this.userarr.length > 0">用户</view>
 				<view class="userList" v-for="item in this.userarr" :key="item.index">
-					<image :src="item.image"></image>
+					<navigator url="../userHome/userHome" hover-class="none3"><image :src="item.image"/></navigator>
 					<view class="names">
 						<view class="name" v-html="item.name"></view>
 						<view class="email" v-html="item.email"></view>
