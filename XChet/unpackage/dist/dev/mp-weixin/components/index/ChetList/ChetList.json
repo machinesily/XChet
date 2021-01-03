@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "chet": "/components/index/ChetList/Chet"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "pages": [
+    "pages/sign/sign",
+    "pages/index/index",
+    "pages/signUp/signUp",
+    "pages/search/search"
+  ],
+  "subPackages": [],
+  "tabBar": {
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "聊天"
+      },
+      {
+        "pagePath": "pages/sign/sign",
+        "text": "注册"
+      }
+    ]
+  },
+  "usingComponents": {},
+  "sitemapLocation": "sitemap85.json"
+}

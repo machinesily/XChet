@@ -1,0 +1,1 @@
+<view class="top-bar data-v-13672094"><view class="top-bar-left data-v-13672094"><slot name="left"></slot></view><view class="top-bar-center data-v-13672094"><slot name="center"></slot></view><view class="top-bar-right data-v-13672094"><slot name="right"></slot></view></view>

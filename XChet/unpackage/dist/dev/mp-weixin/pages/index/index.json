@@ -1,0 +1,8 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "top-bar": "/components/index/TopBar",
+    "chet-list": "/components/index/ChetList/ChetList"
+  }
+}
