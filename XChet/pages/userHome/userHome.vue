@@ -20,6 +20,12 @@
 		<view class="foot">
 			<view class="button">加为好友</view>
 		</view>
+		<view class="add">
+			<view class="name">
+				{{user.name}}
+			</view>
+			<textarea :value="" placeholder="" />
+		</view>
 	</view>
 </template>
 
