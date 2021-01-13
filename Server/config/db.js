@@ -1,5 +1,5 @@
 var mongoose = require('mongoose')
-
+mongoose.set('useFindAndModify', false)
 var db = mongoose.createConnection('mongodb://localhost:27017/Test',{useNewUrlParser:true,useUnifiedTopology:true})
 
 db.on('error', console.error.bind(console, 'connection error:'));

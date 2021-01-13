@@ -16,5 +16,13 @@ exports.generateToken = function (e) {
 
 //解码token
 exports.verifyToken = (e)=>{
-  let payload = jwt.verify(e,secret)
+  let payload
+  jwt.verify(e,secret,(err,result)=>{
+    if(err){
+      payload = 0
+    }else{
+      payload = 1
+    }
+  })
+  return payload
 }

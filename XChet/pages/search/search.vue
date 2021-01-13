@@ -1,18 +1,18 @@
 <template>
 	<view>
 		<view class="status_bar"></view>
-		<view class="topBar">
-			<view class="search-wrapper">
+		<TopBar class="topBar">
+			<view class="search-wrapper" slot="center">
 				<input type="serach" placeholder="搜索用户/群" class="search" placeholder-style="color#aaa;" @input="search" />
-				<image src="../../static/img/search.png" class="search-img"/>
+				<image src="../../static/images/search/search.png" class="search-img" />
 			</view>
-			<view class="cancel-wrapper" @click="back"><span class="cancel">取消</span></view>
-		</view>
+			<view class="cancel" slot="right" @click="back">取消</view>
+		</TopBar>
 		<view class="main">
 			<view class="user">
 				<view class="title" v-show="this.userarr.length > 0">用户</view>
-				<view class="userList" v-for="item in this.userarr" :key="item.index">
-					<navigator url="../userHome/userHome" hover-class="none3"><image :src="item.image"/></navigator>
+				<view class="userList" v-for="(item,index) in this.userarr" :key="index">
+					<navigator url="../userHome/userHome" hover-class="none3"><image :src="item.image" /></navigator>
 					<view class="names">
 						<view class="name" v-html="item.name"></view>
 						<view class="email" v-html="item.email"></view>
@@ -26,8 +26,12 @@
 </template>
 
 <script>
+import TopBar from '../../components/top-bar/TopBar.vue';
 import datas from '../../commons/js/datas.js';
 export default {
+	components: {
+		TopBar
+	},
 	data() {
 		return {
 			userarr: []
@@ -84,46 +88,39 @@ export default {
 </script>
 
 <style lang="scss">
-	.status_bar {
-		height: var(--status-bar-height);
-		width: 100%;
-	}
+.status_bar {
+	height: var(--status-bar-height);
+	width: 100%;
+}
+
 .topBar {
-	height: 88rpx;
 	border-bottom: 1px solid $uni-bg-color-grey; //底部分割线
-	display: flex;
+	text-align: left;
 	.search-wrapper {
 		width: 600rpx;
 		position: relative;
-		// border: 1px solid red;
-		padding: 14rpx 0 14rpx 32rpx;
 		.search {
 			background: $uni-bg-color-grey;
-			border-radius: 5px;
+			border-radius: $uni-border-radius-base;
 			height: 60rpx;
+			padding-right: 45rpx;
+			padding-left: 10rpx;
 		}
 		.search-img {
-				position: absolute;
-				top: 24rpx;
-				right: 10rpx;
-				width: 40rpx;
-				height: 40rpx;
-			}
-	}
-	.cancel-wrapper{
-		width: 118rpx;
-		height: 88rpx;
-		padding: 20rpx 32rpx 10rpx 30rpx;
-		box-sizing: border-box;
-		.cancel{
-			font-size: 14px;
-			color: $uni-text-color;
-			letter-spacing: -0.48px;
+			position: absolute;
+			top:10rpx;
+			right: 10rpx;
+			width: 40rpx;
+			height: 40rpx;
 		}
+	}
+	.cancel {
+		font-size: $uni-font-size-base;
+		color: $uni-text-color;
 	}
 }
 .main {
-	padding: 0 $uni-spacing-row-base;
+	padding: 88rpx $uni-spacing-row-base 0;
 	color: $uni-text-color;
 	.title {
 		padding-top: 34rpx;
@@ -167,6 +164,9 @@ export default {
 			border-radius: 24rpx;
 			font-size: $uni-font-size-sm;
 			margin-top: 20rpx;
+			&:active{
+				background-color: $uni-bg-color-hover;
+			}
 		}
 		.send {
 			background-color: rgba(255, 228, 49, 1);

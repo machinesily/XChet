@@ -2,25 +2,25 @@
 	<view class="sign">
 		<view class="status_bar"></view>
 		<TopBar>
-			<view class="back" slot="left" @click="toSign"><image src="../../static/img/back.png" class="back-img" /></view>
+			<view class="back" slot="left" @click="toSign"><image src="../../static/images/common/back.png" class="back-img" /></view>
 		</TopBar>
 		<view class="main">
 			<view class="login">注册</view>
 			<view class="wrapper">
 				<input type="text" placeholder="请输入用户名" placeholder-style="#aaa" class="user" v-model="user" @input="userFun" />
 				<view class="user-exist" v-show="userExist">用户名已被注册</view>
-				<image src="../../static/img/right.png" class="ok" v-show="userCorrect"></image>
+				<image src="../../static/images/sign/right1.png" class="ok" v-show="userCorrect"></image>
 			</view>
 			<view class="wrapper">
 				<input type="mail" placeholder="邮箱" placeholder-style="#aaa" class="mail" v-model="mail" @blur="mailFun" />
 				<view class="mail-exist" v-show="mailExist">邮箱已被注册</view>
 				<view class="mail-incorrect" v-show="mailIncorrect">邮箱格式错误</view>
-				<image src="../../static/img/right.png" class="ok" v-if="mailCorrect"></image>
+				<image src="../../static/images/sign/right1.png" class="ok" v-if="mailCorrect"></image>
 			</view>
 			<view class="wrapper">
 				<input :type="type" placeholder="请输入密码" placeholder-style="#aaa" class="password" @input="writePassword"/>
-				<image src="../../static/img/look.png" v-show="look" @click="pwLook"></image>
-				<image src="../../static/img/unlook.png" v-show="!look" @click="pwLook"></image>
+				<image src="../../static/images/sign/look.png" v-show="look" @click="pwLook"></image>
+				<image src="../../static/images/sign/biyan.png" v-show="!look" @click="pwLook"></image>
 			</view>
 			<view :class="[{ submit: submit }, { unSubmit: !submit }]" @click="sign">注册</view>
 		</view>
@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import TopBar from '../../components/index/TopBar.vue';
+import TopBar from '../../components/top-bar/TopBar.vue';
 export default {
 	data() {
 		return {
@@ -151,20 +151,22 @@ export default {
 		
 		//注册
 		sign(){
-			uni.request({
-				url:'http://localhost:3000/signup/add',
-				data:{
-					name:this.user,
-					mail:this.mail,
-					psw:this.password
-				},
-				method:'POST',
-				success:data =>{
-					uni.navigateTo({
-						url:'../sign/sign'
-					})
-				}
-			})
+			if(this.userCorrect & this.mailCorrect & this.password.length>1){
+				uni.request({
+					url:'http://localhost:3000/signup/add',
+					data:{
+						name:this.user,
+						mail:this.mail,
+						psw:this.password
+					},
+					method:'POST',
+					success:data =>{
+						uni.navigateTo({
+							url:'../login/login'
+						})
+					}
+				})
+			}
 		}
 	}
 };
@@ -175,15 +177,10 @@ export default {
 		height: var(--status-bar-height);
 		width: 100%;
 	}
-.back {
-	width: 172rpx;
-	height: 88rpx;
-}
+
 .back-img {
 	width: 44rpx;
 	height: 44rpx;
-	padding: 20rpx 0 0 24rpx;
-	float: left;
 }
 .main {
 	padding: 88rpx $uni-spacing-row-base 0;

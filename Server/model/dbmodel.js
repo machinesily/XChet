@@ -21,6 +21,7 @@ var UserSchema = new Schema({
 var FriendSchema = new Schema({
   userID:{type:Schema.Types.ObjectId,ref:'User'},      //用户id
   friendID:{type:Schema.Types.ObjectId,ref:'User'},    //好友id
+  alias:{type:String},                                 //好友备注
   state:{type:String},                                 //好友状态（0：好友，1：申请中，2：申请发送方）
   time:{type:Date},                                    //生成时间
 })

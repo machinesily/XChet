@@ -25,14 +25,19 @@ export default {
 	// border-bottom: 1px solid $uni-bg-color-grey; //底部分割线
 	display: flex; //弹性布局
 	text-align: center;
+	align-items: center;
 }
 .top-bar-center {
 	flex: 1;
 }
 .top-bar-left {
-	width: 176rpx;
+	flex: none;
+	padding-left: $uni-spacing-row-base;
+	// width: 176rpx;
 }
 .top-bar-right {
-	width: 176rpx;
+	flex: none;
+	padding-right: $uni-spacing-row-base;
+	// width: 176rpx;
 }
 </style>

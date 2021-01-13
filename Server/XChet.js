@@ -1,5 +1,7 @@
 //引入解析req.body的插件
 var bodyParser = require('body-parser')
+//引入token
+var jwt = require('./dao/jwt')
 
 
 const express = require('express')
@@ -22,6 +24,24 @@ app.all('*', (req, res, next) => {
 
 //解析前端传过来数据
 app.use(bodyParser.json())
+
+//token判断
+app.use((req,res,next)=>{
+  if(typeof(req.body.token)!='undefined'){
+    //处理token匹配
+    let token = req.body.token
+    let tokenMatch = jwt.verifyToken(token)
+    if(tokenMatch == 1){
+     //验证通过
+      next()
+    }else{
+     //验证不通过
+      res.send({status:300})
+    }
+  }else{
+    next()
+  }
+})
 
 //导入路由表
 require('./route/index.js')(app)

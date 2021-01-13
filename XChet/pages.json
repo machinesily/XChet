@@ -1,5 +1,6 @@
 {
-	"pages": [{
+	"pages": [
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationStyle": "custom",
@@ -7,7 +8,7 @@
 			}
 		},
 		{
-			"path": "pages/sign/sign",
+			"path": "pages/login/login",
 			"style": {
 				"navigationStyle": "custom",
 				"navigationBarTextStyle": "black"
@@ -36,5 +37,23 @@
 			}
 
 		}
-	]
+	    ,{
+            "path" : "pages/userDetails/userDetails",
+            "style" :                                                                                    
+            {
+                "navigationStyle": "custom",
+                "navigationBarTextStyle": "black"
+            }
+            
+        }
+        ,{
+            "path" : "pages/firendRequest/firendRequest",
+            "style" :                                                                                    
+            {
+								"navigationStyle": "custom",
+								"navigationBarTextStyle": "black"
+            }
+            
+        }
+    ]
 }

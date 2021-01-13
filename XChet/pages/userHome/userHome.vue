@@ -1,29 +1,34 @@
 <template>
-	<view>
-		<view class="status_bar"></view>
-		<TopBar>
-			<image src="../../static/img/back.png" mode="" class="back" slot="left" @click="back"></image>
-			<image src="../../static/img/more.png" mode="" slot="right" class="more"></image>
-		</TopBar>
-		<view class="bg">
-		
-			<image src="../../static/img/three.png" mode="aspectFill" /></view>
-		<view class="main">
-			<view class="user-header">
-				<view class="sex" :style="{ background: sexBG }" :animation="animationData2"><image src="../../static/img/male.png"/></view>
-				<image src="../../static/img/three.png" mode="aspectFill" class="user-img" :animation="animationData1"/>
-			</view>
-			<view class="user-message">
-				<view class="name">{{ user.name }}</view>
-				<view class="nick">{{ user.nick }}</view>
-				<view class="intr">{{ user.introduction }}</view>
-			</view>
-		</view>
-		<view class="foot"><view class="button" @click="addAnimation()">加为好友</view></view>
-		<view class="add" :style="{ height: addHeight + 'px', bottom: -addHeight + 'px' }" :animation="animationData">
-			<view class="name">{{ user.name }}</view>
-			<textarea :value="'你好，我是' + myname + ',请求加为好友'" maxlength="120" class="add-message" />
-		</view>
+  <view>
+    <view class="status_bar"></view>
+    <TopBar>
+      <image src="../../static/images/common/back.png" mode="" class="back" slot="left" @click="back"></image>
+      <image src="../../static/images/userhome/more.png" mode="" slot="right" class="more"></image>
+    </TopBar>
+    <view class="bg">
+
+      <image src="../../static/images/img/three.png" mode="aspectFill" />
+    </view>
+    <view class="main">
+      <view class="user-header">
+        <view class="sex" :style="{ background: sexBG }" :animation="animationData2">
+          <image src="../../static/images/userhome/asexual.png" />
+        </view>
+        <image src="../../static/images/img/three.png" mode="aspectFill" class="user-img" :animation="animationData1" />
+      </view>
+      <view class="user-message">
+        <view class="name">{{ user.name }}</view>
+        <view class="nick">{{ user.nick }}</view>
+        <view class="intr">{{ user.introduction }}</view>
+      </view>
+    </view>
+    <view class="foot">
+      <view class="button" @click="addAnimation()">加为好友</view>
+    </view>
+    <view class="add" :style="{ height: addHeight + 'px', bottom: -addHeight + 'px' }" :animation="animationData">
+      <view class="name">{{ user.name }}</view>
+      <textarea :value="'你好，我是' + myname + ',请求加为好友'" maxlength="120" class="add-message" />
+      </view>
 		<view class="add-bt" :animation="animationData">
 			<view class="cancel" @click="addAnimation()">取消</view>
 			<view class="send">发送</view>
@@ -32,7 +37,7 @@
 </template>
 
 <script>
-import TopBar from '../../components/index/TopBar.vue';
+import TopBar from '../../components/top-bar/TopBar.vue';
 export default {
 	data() {
 		return {
@@ -95,12 +100,12 @@ export default {
 			if (this.isAdd) {
 				//展开的动画
 				animation.bottom(0).step();
-				animation1.width(120).height(120).step()
+				animation1.width(120).height(120).top(50).step()
 				animation2.opacity(0).step();
 			} else {
 				//缩小的动画
-				animation.bottom(-this.addHeight).step();
-				animation1.width(200).height(200).step()
+				animation.bottom(-this.addHeight).step();  //下方卡片显示的动画
+				animation1.width().height().top(0).step()   //头像大小的动画
 				animation2.opacity(1).step();
 			}
 			this.animationData = animation.export();
@@ -117,14 +122,12 @@ export default {
 	width: 100%;
 }
 .back {
-	float: left;
-	padding: 20rpx $uni-spacing-row-base;
+	padding: 20rpx 0;
 	width: 48rpx;
 	height: 48rpx;
 }
 .more {
-	float: right;
-	padding: 38rpx $uni-spacing-row-base;
+	padding: 38rpx 0;
 	width: 52rpx;
 	height: 12rpx;
 }
@@ -226,7 +229,6 @@ export default {
 	width: 100%;
 	box-sizing: border-box;
 	padding: 0 56rpx;
-	// height: 1252rpx;
 	background-color: #ffffff;
 	border-radius: 40rpx 40rpx 0 0;
 	color: $uni-text-color;
