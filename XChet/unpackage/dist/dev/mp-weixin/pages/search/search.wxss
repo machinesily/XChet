@@ -29,42 +29,33 @@
   width: 100%;
 }
 .topBar {
-  height: 88rpx;
   border-bottom: 1px solid #f3f4f6;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: flex;
+  text-align: left;
 }
 .topBar .search-wrapper {
   width: 600rpx;
   position: relative;
-  padding: 14rpx 0 14rpx 32rpx;
 }
 .topBar .search-wrapper .search {
   background: #f3f4f6;
-  border-radius: 5px;
+  border-radius: 20rpx;
   height: 60rpx;
+  padding-right: 45rpx;
+  padding-left: 10rpx;
 }
 .topBar .search-wrapper .search-img {
   position: absolute;
-  top: 24rpx;
+  top: 10rpx;
   right: 10rpx;
   width: 40rpx;
   height: 40rpx;
 }
-.topBar .cancel-wrapper {
-  width: 118rpx;
-  height: 88rpx;
-  padding: 20rpx 32rpx 10rpx 30rpx;
-  box-sizing: border-box;
-}
-.topBar .cancel-wrapper .cancel {
-  font-size: 14px;
+.topBar .cancel {
+  font-size: 28rpx;
   color: #272832;
-  letter-spacing: -0.48px;
 }
 .main {
-  padding: 0 32rpx;
+  padding: 88rpx 32rpx 0;
   color: #272832;
 }
 .main .title {
@@ -110,6 +101,9 @@
   border-radius: 24rpx;
   font-size: 24rpx;
   margin-top: 20rpx;
+}
+.main .userList .button:active {
+  background-color: rgba(39, 40, 50, 0.2);
 }
 .main .userList .send {
   background-color: #ffe431;

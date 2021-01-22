@@ -130,7 +130,7 @@ __webpack_require__.r(__webpack_exports__);
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(uni) {Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var TopBar = function TopBar() {__webpack_require__.e(/*! require.ensure | components/index/TopBar */ "components/index/TopBar").then((function () {return resolve(__webpack_require__(/*! ../../components/index/TopBar.vue */ 45));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};var _default =
+/* WEBPACK VAR INJECTION */(function(uni) {Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var TopBar = function TopBar() {__webpack_require__.e(/*! require.ensure | components/top-bar/TopBar */ "components/top-bar/TopBar").then((function () {return resolve(__webpack_require__(/*! ../../components/top-bar/TopBar.vue */ 76));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};var _default =
 
 
 
@@ -180,6 +180,16 @@ __webpack_require__.r(__webpack_exports__);
   components: {
     TopBar: TopBar },
 
+  computed: {
+    //可以注册后，注册按钮高亮
+    signup: function signup() {
+      if (this.userCorrect && this.mailCorrect && !this.mailExist && this.password.length > 1) {
+        this.submit = true;
+      } else {
+        this.submit = false;
+      }
+    } },
+
   methods: {
     //返回登录页面
     toSign: function toSign() {
@@ -188,32 +198,83 @@ __webpack_require__.r(__webpack_exports__);
 
     },
 
+    //判断用户名是否存在
+    matchUser: function matchUser() {var _this = this;
+      if (this.user.length > 0) {
+        uni.request({
+          url: this.serverUrl + '/signup/judge',
+          data: {
+            type: 'name',
+            data: this.user },
+
+          method: 'POST',
+          success: function success(data) {
+            //如果请求成功
+            if (data.data.status == 200) {
+              if (data.data.result > 0) {
+                //查找该用户数大于0表示用户存在
+                _this.userExist = true; //显示用户已存在
+                _this.userCorrect = false; //隐藏正确的图片
+              } else {
+                _this.userExist = false;
+                _this.userCorrect = true; //显示正确的图片
+              }
+              _this.signup;
+            } else if (data.data.status == 500) {
+              //弹出提醒
+              uni.showToast({
+                title: '服务器出错了',
+                icon: 'none',
+                duration: 2000 });
+
+            }
+          } });
+
+      } else {
+        //所有提示都不显示
+        this.userExist = false;
+        this.userCorrect = false;
+      }
+    },
+
     //判断邮箱格式是否符合
-    mailFun: function mailFun() {var _this = this;
+    matchMail: function matchMail() {var _this2 = this;
       var rePass = new RegExp('^([a-zA-Z0-9]+[_|\\_|\\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\\_|\\.]?)*[a-zA-Z0-9]+\\.[a-zA-Z]{2,3}$', '');
       var isPass = rePass.test(this.mail);
-      if (!(this.mail.length === 0)) {
+      if (this.mail.length > 0) {
         //输入字数不为0
-        if (isPass == false) {
+        if (!isPass) {
           //如果不正确
-          this.mailIncorrect = true;
-          this.mailCorrect = false;
+          this.mailIncorrect = true; //显示邮箱不正确图标
+          this.mailCorrect = false; //隐藏邮箱正确图标
         } else {
+          //邮箱格式正确发送网络请求
           this.mailIncorrect = false;
           uni.request({
-            url: 'http://localhost:3000/signup/judge',
+            url: this.serverUrl + '/signup/judge',
             data: {
               type: 'mail',
               data: this.mail },
 
             method: 'POST',
             success: function success(data) {
-              if (data.data.result > 0) {
-                _this.mailExist = true;
-                _this.mailCorrect = false;
-              } else {
-                _this.mailExist = false;
-                _this.mailCorrect = true;
+              if (data.data.status == 200) {
+                if (data.data.result > 0) {
+                  //邮箱已存在
+                  _this2.mailExist = true;
+                  _this2.mailCorrect = false;
+                } else {
+                  _this2.mailExist = false;
+                  _this2.mailCorrect = true;
+                }
+                _this2.signup;
+              } else if (data.data.status == 500) {
+                //弹出提醒
+                uni.showToast({
+                  title: '服务器出错了',
+                  icon: 'none',
+                  duration: 2000 });
+
               }
             } });
 
@@ -223,37 +284,8 @@ __webpack_require__.r(__webpack_exports__);
         this.mailCorrect = false;
         this.mailIncorrect = false;
       }
-      this.signup();
     },
 
-    //判断用户名是否存在
-    userFun: function userFun() {var _this2 = this;
-      if (this.user.length > 0) {
-        uni.request({
-          url: 'http://localhost:3000/signup/judge',
-          data: {
-            type: 'name',
-            data: this.user },
-
-          method: 'POST',
-          success: function success(data) {
-            if (data.data.result > 0) {
-              //查找该用户数大于0表示用户存在
-              _this2.userExist = true; //显示用户已存在
-              _this2.userCorrect = false; //隐藏正确的图片
-            } else {
-              _this2.userExist = false;
-              _this2.userCorrect = true; //显示正确的图片
-            }
-          } });
-
-      } else {
-        //所有提示都不显示
-        this.userExist = false;
-        this.userCorrect = false;
-      }
-      this.signup();
-    },
     //密码显示的样式
     pwLook: function pwLook() {
       if (this.look == false) {
@@ -268,35 +300,36 @@ __webpack_require__.r(__webpack_exports__);
     //把密码写入到data中
     writePassword: function writePassword(event) {
       this.password = event.target.value;
-      // console.log(this.password);
-      this.signup();
+      this.signup;
     },
 
-    //可以注册后，注册按钮高亮
-    signup: function signup() {
-      if (this.userCorrect & this.mailCorrect & this.password.length > 1) {
-        this.submit = true;
-      } else {
-        this.submit = false;
+    //注册提交
+    signUp: function signUp() {var _this3 = this;
+      if (this.userCorrect && this.mailCorrect && !this.mailExist && this.password.length > 1) {
+        uni.request({
+          url: this.serverUrl + '/signup/add',
+          data: {
+            name: this.user,
+            mail: this.mail,
+            psw: this.password },
+
+          method: 'POST',
+          success: function success(data) {
+            if (data.data.status == 200) {
+              uni.redirectTo({
+                url: '../login/login?user=' + _this3.user });
+
+            } else if (data.data.status == 500) {
+              //弹出提醒
+              uni.showToast({
+                title: '服务器出错了',
+                icon: 'none',
+                duration: 2000 });
+
+            }
+          } });
+
       }
-    },
-
-    //注册
-    sign: function sign() {
-      uni.request({
-        url: 'http://localhost:3000/signup/add',
-        data: {
-          name: this.user,
-          mail: this.mail,
-          psw: this.password },
-
-        method: 'POST',
-        success: function success(data) {
-          uni.navigateTo({
-            url: '../sign/sign' });
-
-        } });
-
     } } };exports.default = _default;
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ 1)["default"]))
 

@@ -86,5 +86,105 @@ export default {
 			},
 		]
 		return isfriend
+	},
+	//聊天
+	message(){
+		let msgs = [
+			{
+				id:'a',
+				imgurl:'three.png',
+				message:'需注意在webview渲染的页面中，区域滚动的性能不及页面滚动。',
+				types:0,
+				time:new Date()-1000*60*30,
+				tip:0
+			},
+			{
+				id:'a',
+				imgurl:'three.png',
+				message:'test.png',
+				types:1,
+				time:new Date()-1000*60*24,
+				tip:1
+			},
+			{
+				id:'b',
+				imgurl:'two.png',
+				message:'可滚动视图区域。用于区域滚动',
+				types:0,
+				time:new Date()-1000*60*12,
+				tip:2
+			},
+			{
+				id:'b',
+				imgurl:'two.png',
+				message:'在设置滚动条位置时使用动画过渡',
+				types:0,
+				time:new Date()-1000*60*11,
+				tip:3
+			},
+			{
+				id:'a',
+				imgurl:'three.png',
+				message:'值应为某子元素id（id不能以数字开头）。设置哪个方向可滚动，则在哪个方向滚动到该元素',
+				types:0,
+				time:new Date()-1000*60*10,
+				tip:4
+			},
+			{
+				id:'b',
+				imgurl:'two.png',
+				message:'pig.png',
+				types:1,
+				time:new Date()-1000*60*4,
+				tip:5
+			},
+			{
+				id:'b',
+				imgurl:'two.png',
+				message:'设置自定义下拉刷新默认样式，支持设置 black,white,none,none 表示不使用默认样式',
+				types:0,
+				time:new Date()-1000*60*3,
+				tip:6
+			},
+			{
+				id:'b',
+				imgurl:'two.png',
+				message:'one.png',
+				types:1,
+				time:new Date()-1000*60*2,
+				tip:7
+			},
+			{
+				id:'a',
+				imgurl:'three.png',
+				message:'mine.png',
+				types:1,
+				time:new Date()-1000*60,
+				tip:8
+			},
+			{
+				id:'a',
+				imgurl:'three.png',
+				message:{
+					record:'../../static/mp3.mp3',
+					time:60
+				},
+				types:2,
+				time:new Date()-1000*30,
+				tip:9
+			},
+			{
+				id:'b',
+				imgurl:'two.png',
+				message:{
+					record:'../../static/mp3.mp3',
+					time:10
+				},
+				types:2,
+				time:new Date(),
+				tip:10
+			},
+		]
+		return msgs
 	}
 }

@@ -24,6 +24,10 @@ app.all('*', (req, res, next) => {
 
 //解析前端传过来数据
 app.use(bodyParser.json())
+// app.use(bodyParser.json({limit:'50mb'}))
+
+//获取图片静态路径
+app.use(express.static(__dirname+'/data'))
 
 //token判断
 app.use((req,res,next)=>{
@@ -45,6 +49,7 @@ app.use((req,res,next)=>{
 
 //导入路由表
 require('./route/index.js')(app)
+require('./route/files.js')(app)
 
 //404页面处理
 app.use((req,res,next)=>{

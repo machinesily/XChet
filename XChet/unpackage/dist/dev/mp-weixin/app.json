@@ -1,23 +1,14 @@
 {
   "pages": [
-    "pages/sign/sign",
+    "pages/login/login",
     "pages/index/index",
     "pages/signUp/signUp",
-    "pages/search/search"
+    "pages/search/search",
+    "pages/userHome/userHome",
+    "pages/userDetails/userDetails",
+    "pages/firendRequest/firendRequest",
+    "pages/test"
   ],
   "subPackages": [],
-  "tabBar": {
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "聊天"
-      },
-      {
-        "pagePath": "pages/sign/sign",
-        "text": "注册"
-      }
-    ]
-  },
-  "usingComponents": {},
-  "sitemapLocation": "sitemap85.json"
+  "usingComponents": {}
 }

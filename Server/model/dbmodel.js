@@ -10,10 +10,10 @@ var UserSchema = new Schema({
   psw:{type:String},                       //密码
   mail:{type:String},                      //邮箱
   sex:{type:String,default:'asexual'},     //性别，默认中性
-  birth:{type:Date},                       //生日
+  birth:{type:String},                       //生日
   phone:{type:Number},                     //电话
   explain:{type:String},                   //介绍
-  imgurl:{type:String,default:'user.png'},  //头像
+  imgurl:{type:String,default:'add.png'},  //头像
   time:{type:Date},                        //注册时间
 })
 
@@ -24,6 +24,7 @@ var FriendSchema = new Schema({
   alias:{type:String},                                 //好友备注
   state:{type:String},                                 //好友状态（0：好友，1：申请中，2：申请发送方）
   time:{type:Date},                                    //生成时间
+  lastTime:{type:Date}                                 //最后通讯时间
 })
 
 //一对一消息表
@@ -31,7 +32,7 @@ var MessageSchema = new Schema({
   userID:{type:Schema.Types.ObjectId,ref:'User'},      //用户id
   friendID:{type:Schema.Types.ObjectId,ref:'User'},    //好友id
   message:{type:String},                               //发送的内容
-  types:{type:String},                                 //发送类型（0文字，1图片，3音频。。。）
+  type:{type:String},                                 //发送类型（0文字，1图片，2音频。。。）
   time:{type:Date},                                    //生成时间
   state:{type:Number}                                  //消息状态（0已读，1未读）
 })
@@ -42,7 +43,8 @@ var GroupSchema = new Schema({
   name:{type:String},                                  //群名称
   imgurl:{type:String,default:'group.png'},            //群头像
   time:{type:Date},                                    //创建时间
-  notice:{type:Number}                                  //公告
+  lastTime:{type:Date},                               //最后通讯时间
+  notice:{type:Number}                                 //公告
 })
 
 //群成员表

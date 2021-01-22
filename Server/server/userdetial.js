@@ -13,6 +13,12 @@ exports.userUpdata = (req,res)=>{
   dbserver.userUpdata(data,res)
 }
 
+//好友备注获取
+exports.getFriendAlias = (req,res)=>{
+  let data = req.body
+  dbserver.getFriendAlias(data,res)
+}
+
 //好友备注修改
 exports.friendAliasUpdate = (req,res)=>{
   let data = req.body

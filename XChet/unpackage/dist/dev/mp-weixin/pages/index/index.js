@@ -97,7 +97,7 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  var l0 = _vm.__map(_vm.news, function(item, __i0__) {
+  var l0 = _vm.__map(_vm.news, function(item, index) {
     var $orig = _vm.__get_orig(item)
 
     var m0 = _vm.changeDate(item.time)
@@ -176,21 +176,42 @@ __webpack_require__.r(__webpack_exports__);
 
 var _changeDate2 = _interopRequireDefault(__webpack_require__(/*! ../../commons/js/changeDate.js */ 25));
 
-var _datas = _interopRequireDefault(__webpack_require__(/*! ../../commons/js/datas.js */ 26));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}var TopBar = function TopBar() {__webpack_require__.e(/*! require.ensure | components/index/TopBar */ "components/index/TopBar").then((function () {return resolve(__webpack_require__(/*! ../../components/index/TopBar.vue */ 45));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};var ChetList = function ChetList() {__webpack_require__.e(/*! require.ensure | components/index/ChetList/ChetList */ "components/index/ChetList/ChetList").then((function () {return resolve(__webpack_require__(/*! ../../components/index/ChetList/ChetList.vue */ 52));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};var _default =
+var _datas = _interopRequireDefault(__webpack_require__(/*! ../../commons/js/datas.js */ 26));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}var TopBar = function TopBar() {__webpack_require__.e(/*! require.ensure | components/top-bar/TopBar */ "components/top-bar/TopBar").then((function () {return resolve(__webpack_require__(/*! ../../components/top-bar/TopBar.vue */ 76));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};var _default =
 {
   data: function data() {
     return {
-      news: [] };
+      news: [],
+      uid: '',
+      imgurl: '',
+      token: '' };
 
   },
   components: {
-    TopBar: TopBar,
-    ChetList: ChetList },
+    TopBar: TopBar },
 
   onLoad: function onLoad() {
     this.getNews();
+    this.getStorages();
   },
   methods: {
+    //获取缓存数据
+    getStorages: function getStorages() {
+      try {
+        var value = uni.getStorageSync('user');
+        if (value) {
+          this.uid = value.id;
+          this.imgurl = this.serverUrl + '/user/' + value.imgurl;
+          this.token = value.token;
+        } else {
+          //如果没有用户缓存，跳转到登录页面
+          uni.redirectTo({
+            url: '../login/login' });
+
+        }
+      } catch (e) {
+        // error
+      }
+    },
     getNews: function getNews() {
       this.news = _datas.default.friends();
       // console.log(this.news);

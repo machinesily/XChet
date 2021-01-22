@@ -5,7 +5,7 @@ var dbserver = require('../dao/dbserver')
 var jwt = require('../dao/jwt')
 
 exports.login = (req,res)=>{
-  let data = req.body.data
+  let data = req.body.user
   let psw = req.body.psw
 
   dbserver.useMatch(data,psw,res)

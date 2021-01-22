@@ -2,6 +2,6 @@
   "navigationStyle": "custom",
   "navigationBarTextStyle": "black",
   "usingComponents": {
-    "top-bar": "/components/index/TopBar"
+    "top-bar": "/components/top-bar/TopBar"
   }
 }

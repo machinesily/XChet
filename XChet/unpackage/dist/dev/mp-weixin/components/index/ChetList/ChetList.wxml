@@ -1,1 +1,0 @@
-<view class="chetList data-v-4f99b307"><block wx:for="{{news}}" wx:for-item="item" wx:for-index="__i0__" wx:key="index"><chet vue-id="{{'b8c5a242-1-'+__i0__}}" chetItem="{{item}}" class="data-v-4f99b307" bind:__l="__l"></chet></block></view>

@@ -1,37 +1,33 @@
 <template>
-  <view>
-    <view class="status_bar"></view>
-    <TopBar>
-      <image src="../../static/images/common/back.png" mode="" class="back" slot="left" @click="back"></image>
-      <image src="../../static/images/userhome/more.png" mode="" slot="right" class="more"></image>
-    </TopBar>
-    <view class="bg">
-
-      <image src="../../static/images/img/three.png" mode="aspectFill" />
-    </view>
-    <view class="main">
-      <view class="user-header">
-        <view class="sex" :style="{ background: sexBG }" :animation="animationData2">
-          <image src="../../static/images/userhome/asexual.png" />
-        </view>
-        <image src="../../static/images/img/three.png" mode="aspectFill" class="user-img" :animation="animationData1" />
-      </view>
-      <view class="user-message">
-        <view class="name">{{ user.name }}</view>
-        <view class="nick">{{ user.nick }}</view>
-        <view class="intr">{{ user.introduction }}</view>
-      </view>
-    </view>
-    <view class="foot">
-      <view class="button" @click="addAnimation()">加为好友</view>
-    </view>
-    <view class="add" :style="{ height: addHeight + 'px', bottom: -addHeight + 'px' }" :animation="animationData">
-      <view class="name">{{ user.name }}</view>
-      <textarea :value="'你好，我是' + myname + ',请求加为好友'" maxlength="120" class="add-message" />
-      </view>
+	<view>
+		<view class="status_bar"></view>
+		<TopBar>
+			<image src="../../static/images/common/back.png" mode="" class="back" slot="left" @click="back"></image>
+			<image src="../../static/images/userhome/more.png" mode="" slot="right" class="more" v-if="relation == 0 || relation == 1" @tap="userDetial" />
+		</TopBar>
+		<view class="bg"><image :src="user.imgurl" mode="aspectFill" /></view>
+		<view class="main">
+			<view class="user-header">
+				<view class="sex" :style="{ background: sexBG }" :animation="animationData2"><image :src="seximg" /></view>
+				<image :src="user.imgurl" mode="aspectFill" class="user-img" :animation="animationData1" />
+			</view>
+			<view class="user-message">
+				<view class="name">{{ user.name }}</view>
+				<view class="nick">备注：{{ alias }}</view>
+				<view class="intr">{{ user.explain }}</view>
+			</view>
+		</view>
+		<view class="foot">
+			<view class="button" @click="addFriendBtn()" v-if="relation == 2">加为好友</view>
+			<view class="button" v-if="relation == 1">发送消息</view>
+		</view>
+		<view class="add" :style="{ height: addHeight + 'px', bottom: -addHeight + 'px' }" :animation="animationData">
+			<view class="name">{{ user.name }}</view>
+			<textarea v-model="message" maxlength="120" class="add-message" />
+		</view>
 		<view class="add-bt" :animation="animationData">
 			<view class="cancel" @click="addAnimation()">取消</view>
-			<view class="send">发送</view>
+			<view class="send" @tap="addFriend">发送</view>
 		</view>
 	</view>
 </template>
@@ -41,18 +37,21 @@ import TopBar from '../../components/top-bar/TopBar.vue';
 export default {
 	data() {
 		return {
-			sexBG: '#ff5d5b', //性别颜色
-			addHeight: '', //add板块高度
-			myname: 'XXX', //用户的名字
-			animationData: {}, //动画
+			fid: '', //对象
+			uid: '', //用户id
+			token: '', //验证的token
+			user: {}, //后端获取到的头像，名字，简介
+			alias: '', //用户的备注
+			myname: '', //用户自己的名字
+			sexBG: '', //性别颜色
+			seximg: '', //性别框背景颜色
+			relation: '', //用户关系 0表示自己，1表示好友，2表示陌生人
+			addHeight: '10000', //add板块高度
+			animationData: {}, //添加好友弹出动画
 			animationData1: {}, //头像的动画
 			animationData2: {}, //性别的动画
-			isAdd: false,
-			user: {
-				name: '秋风',
-				nick: '疾风剑豪',
-				introduction: '死亡如风，常伴吾身,死亡如风，常伴吾身死亡如风，常伴吾身,死亡如风，常伴吾身,死亡如风，常伴吾身,死亡如风，常伴吾身,死亡如风，常伴吾身,死亡如风，常伴吾身,'
-			}
+			message: '', //添加好友的信息
+			isAdd: false
 		};
 	},
 	components: {
@@ -61,14 +60,190 @@ export default {
 	onReady() {
 		this.getElementStyle();
 	},
+	onLoad: function(e) {
+		this.fid = e.id;
+		this.getStorages();
+		this.getUser();
+		this.judgeFriend();
+	},
 	methods: {
 		//返回上一页
-		back(){
+		back() {
 			uni.navigateBack({
-				delta:1
-			})
+				delta: 1
+			});
 		},
-		
+
+		//跳转到用户详情
+		userDetial() {
+			uni.navigateTo({
+				url: '../userDetails/userDetails?id=' + this.fid
+			});
+		},
+
+		//获取缓存数据
+		getStorages() {
+			try {
+				const value = uni.getStorageSync('user');
+				if (value) {
+					(this.uid = value.id), (this.imgurl = this.serverUrl + '/user/' + value.imgurl), (this.token = value.token);
+					this.myname = value.name;
+				} else {
+					//如果没有用户缓存，跳转到登录页面
+					uni.redirectTo({
+						url: '../login/login'
+					});
+				}
+			} catch (e) {
+				// error
+			}
+		},
+
+		//获取用户信息
+		getUser() {
+			uni.request({
+				url: this.serverUrl + '/user/detail',
+				data: {
+					id: this.fid,
+					token: this.token
+				},
+				method: 'POST',
+				success: data => {
+					if (data.data.status == 200) {
+						//访问后端成功，登录成功
+						let res = data.data.result;
+						//处理头像链接
+						res.imgurl = this.serverUrl + '/user/' + res.imgurl;
+						//处理简介
+						if (typeof res.explain) {
+							res.explain = '这个人很懒，什么都没有留下~~';
+						}
+						//处理alias
+						if (this.alias) {
+							this.alias = res.name;
+						}
+						this.sexJudge(res.sex);
+						this.user = res;
+					} else if (data.data.status == 300) {
+						//token过期，跳转到登录页面
+						uni.redirectTo({
+							url: '../login/login?name=' + this.myname
+						});
+					} else if (data.data.status == 500) {
+						//服务器错误
+						uni.showToast({
+							title: '服务器出错了',
+							icon: 'none',
+							duration: 2000
+						});
+					}
+				}
+			});
+		},
+
+		//性别判断
+		sexJudge(e) {
+			if (e == 'asexual') {
+				//无性别
+				this.seximg = '../../static/images/userhome/asexual.png';
+				this.sexBG = 'rgba(39,40,50,1)';
+			} else if (e == 'female') {
+				//女性
+				this.seximg = '../../static/images/userhome/female.png';
+				this.sexBG = 'rgba(255,93,91,1)';
+			} else {
+				//男性
+				this.seximg = '../../static/images/userhome/male.png';
+				this.sexBG = 'rgba(87,153,255,1)';
+			}
+		},
+
+		//判断好友关系
+		judgeFriend() {
+			if (this.fid == this.uid) {
+				this.relation = 0;
+			} else {
+				//如果不是好友，进行后端访问验证
+				uni.request({
+					url: this.serverUrl + '/search/isfriend',
+					data: {
+						uid: this.uid,
+						fid: this.fid,
+						token: this.token
+					},
+					method: 'POST',
+					success: data => {
+						if (data.data.status == 200) {
+							//是好友
+							this.relation = 1;
+							if (typeof data.data.result.alias) {
+								this.alias = data.data.result.alias;
+							}
+						} else if (data.data.status == 300) {
+							//token过期，跳转到登录页面
+							uni.redirectTo({
+								url: '../login/login?name=' + this.myname
+							});
+						} else if (data.data.status == 400) {
+							//陌生人
+							this.relation = 2;
+						} else if (data.data.status == 500) {
+							//服务器错误
+							uni.showToast({
+								title: '服务器出错了',
+								icon: 'none',
+								duration: 2000
+							});
+						}
+					}
+				});
+			}
+		},
+
+		//添加好友按钮
+		addFriendBtn() {
+			this.message = '你好，我是' + this.myname + '，请求添加好友~~';
+			this.addAnimation();
+		},
+
+		//添加好友确认
+		addFriend() {
+			uni.request({
+				url: this.serverUrl + '/friend/apply',
+				data: {
+					uid: this.uid,
+					fid: this.fid,
+					msg: this.message,
+					token: this.token
+				},
+				method: 'POST',
+				success: data => {
+					if (data.data.status == 200) {
+						//访问后端成功，登录成功
+						this.addAnimation();
+						uni.showToast({
+							title: '好友请求发送成功',
+							icon: 'none',
+							duration: 2000
+						});
+					} else if (data.data.status == 300) {
+						//token过期，跳转到登录页面
+						uni.redirectTo({
+							url: '../login/login?name=' + this.myname
+						});
+					} else if (data.data.status == 500) {
+						//服务器错误
+						this.addAnimation();
+						uni.showToast({
+							title: '服务器出错了',
+							icon: 'none',
+							duration: 2000
+						});
+					}
+				}
+			});
+		},
+
 		//获取设备的高度
 		getElementStyle() {
 			const query = uni.createSelectorQuery().in(this);
@@ -100,12 +275,20 @@ export default {
 			if (this.isAdd) {
 				//展开的动画
 				animation.bottom(0).step();
-				animation1.width(120).height(120).top(50).step()
+				animation1
+					.width(120)
+					.height(120)
+					.top(20)
+					.step();
 				animation2.opacity(0).step();
 			} else {
 				//缩小的动画
-				animation.bottom(-this.addHeight).step();  //下方卡片显示的动画
-				animation1.width().height().top(0).step()   //头像大小的动画
+				animation.bottom(-this.addHeight).step(); //下方卡片显示的动画
+				animation1
+					.width()
+					.height()
+					.top(0)
+					.step(); //头像大小的动画
 				animation2.opacity(1).step();
 			}
 			this.animationData = animation.export();
@@ -161,7 +344,7 @@ export default {
 			height: 400rpx;
 			border: 6rpx solid #ffffff;
 			border-radius: 48rpx;
-			box-shadow: 0rpx 36rpx 40rpx 0 rgba(39,40,50,0.1);
+			box-shadow: 0rpx 36rpx 40rpx 0 rgba(39, 40, 50, 0.1);
 		}
 		.sex {
 			z-index: 11;

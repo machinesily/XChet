@@ -28,15 +28,9 @@
   height: 25px;
   width: 100%;
 }
-.back {
-  width: 172rpx;
-  height: 88rpx;
-}
 .back-img {
   width: 44rpx;
   height: 44rpx;
-  padding: 20rpx 0 0 24rpx;
-  float: left;
 }
 .main {
   padding: 88rpx 32rpx 0;

@@ -19,7 +19,7 @@ exports.emailSingUp = function(email,res){
     from:'934229118@qq.com',
     to:email,
     subject:'感谢你的注册',  //邮件标题
-    html:'<span>欢迎你的加入</span><a href="http://localhost:8080/">点击</a>'
+    html:'<span>欢迎你的加入,</span><a href="http://localhost:8080/">点击进入XChet</a>'
   }
 
   //发送邮件

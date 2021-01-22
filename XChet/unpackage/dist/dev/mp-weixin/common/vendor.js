@@ -801,7 +801,7 @@ function initData(vueOptions, context) {
     try {
       data = data.call(context); // 支持 Vue.prototype 上挂的数据
     } catch (e) {
-      if (Object({"VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","NODE_ENV":"development","BASE_URL":"/"}).VUE_APP_DEBUG) {
+      if (Object({"NODE_ENV":"development","VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","BASE_URL":"/"}).VUE_APP_DEBUG) {
         console.warn('根据 Vue 的 data 函数初始化小程序 data 失败，请尽量确保 data 函数中不访问 vm 对象，否则可能影响首次数据渲染速度。', data);
       }
     }
@@ -7383,7 +7383,7 @@ function type(obj) {
 
 function flushCallbacks$1(vm) {
     if (vm.__next_tick_callbacks && vm.__next_tick_callbacks.length) {
-        if (Object({"VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","NODE_ENV":"development","BASE_URL":"/"}).VUE_APP_DEBUG) {
+        if (Object({"NODE_ENV":"development","VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","BASE_URL":"/"}).VUE_APP_DEBUG) {
             var mpInstance = vm.$scope;
             console.log('[' + (+new Date) + '][' + (mpInstance.is || mpInstance.route) + '][' + vm._uid +
                 ']:flushCallbacks[' + vm.__next_tick_callbacks.length + ']');
@@ -7404,14 +7404,14 @@ function nextTick$1(vm, cb) {
     //1.nextTick 之前 已 setData 且 setData 还未回调完成
     //2.nextTick 之前存在 render watcher
     if (!vm.__next_tick_pending && !hasRenderWatcher(vm)) {
-        if(Object({"VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","NODE_ENV":"development","BASE_URL":"/"}).VUE_APP_DEBUG){
+        if(Object({"NODE_ENV":"development","VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","BASE_URL":"/"}).VUE_APP_DEBUG){
             var mpInstance = vm.$scope;
             console.log('[' + (+new Date) + '][' + (mpInstance.is || mpInstance.route) + '][' + vm._uid +
                 ']:nextVueTick');
         }
         return nextTick(cb, vm)
     }else{
-        if(Object({"VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","NODE_ENV":"development","BASE_URL":"/"}).VUE_APP_DEBUG){
+        if(Object({"NODE_ENV":"development","VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","BASE_URL":"/"}).VUE_APP_DEBUG){
             var mpInstance$1 = vm.$scope;
             console.log('[' + (+new Date) + '][' + (mpInstance$1.is || mpInstance$1.route) + '][' + vm._uid +
                 ']:nextMPTick');
@@ -7497,7 +7497,7 @@ var patch = function(oldVnode, vnode) {
     });
     var diffData = this.$shouldDiffData === false ? data : diff(data, mpData);
     if (Object.keys(diffData).length) {
-      if (Object({"VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","NODE_ENV":"development","BASE_URL":"/"}).VUE_APP_DEBUG) {
+      if (Object({"NODE_ENV":"development","VUE_APP_NAME":"XChet","VUE_APP_PLATFORM":"mp-weixin","BASE_URL":"/"}).VUE_APP_DEBUG) {
         console.log('[' + (+new Date) + '][' + (mpInstance.is || mpInstance.route) + '][' + this._uid +
           ']差量更新',
           JSON.stringify(diffData));
@@ -7961,9 +7961,26 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
       }
       return year + '/' + month + '/' + day;
     }
+  },
 
+  //
+  changeTime: function changeTime(oleDate) {
+    var old = new Date(oleDate);
 
+    //获取oldDate的具体时间
+    var hour = old.getHours();
+    var minute = old.getMinutes();
+    var year = old.getFullYear();
+    var month = old.getMonth() + 1; //获取的比实际要小，所以要加一
+    var day = old.getDate();
 
+    if (month < 10) {
+      month = '0' + month;
+    }
+    if (day < 10) {
+      day = '0' + day;
+    }
+    return year + '-' + month + '-' + day;
   } };exports.default = _default;
 
 /***/ }),
@@ -7980,7 +7997,7 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
   friends: function friends() {
     var friendList = [{
       id: 1,
-      image: '../../static/img/test.png',
+      image: '../../static/images/img/one.png',
       tip: 555,
       name: 'GEKYUME',
       time: new Date(),
@@ -7989,7 +8006,7 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 
     {
       id: 2,
-      image: '../../static/img/mine.png',
+      image: '../../static/images/img/mine.png',
       tip: 23,
       name: '薯条',
       time: new Date(),
@@ -7998,7 +8015,7 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 
     {
       id: 3,
-      image: '../../static/img/daijiayue.png',
+      image: '../../static/images/img/daijiayue.png',
       tip: 9,
       name: '麦乐鸡',
       time: new Date(),
@@ -8007,7 +8024,7 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 
     {
       id: 4,
-      image: '../../static/img/shizi.png',
+      image: '../../static/images/img/shizi.png',
       tip: 0,
       name: '狮子',
       time: new Date(),
@@ -8016,7 +8033,7 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 
     {
       id: 5,
-      image: '../../static/img/pig.png',
+      image: '../../static/images/img/pig.png',
       tip: 1,
       name: '猪',
       time: new Date(),
@@ -8025,7 +8042,7 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 
     {
       id: 6,
-      image: '../../static/img/test.png',
+      image: '../../static/images/img/two.png',
       tip: 2,
       name: 'fiveaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       time: new Date(),
@@ -8034,7 +8051,7 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 
     {
       id: 7,
-      image: '../../static/img/test.png',
+      image: '../../static/images/img/three.png',
       tip: 2,
       name: 'six',
       time: new Date(),
@@ -8107,6 +8124,33 @@ module.exports = g;
 /***/ (function(module, exports) {
 
 
+
+/***/ }),
+
+/***/ 43:
+/*!****************************************************************!*\
+  !*** C:/Users/86184/Desktop/毕业设计/XChet/commons/js/debounce.js ***!
+  \****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0; //防抖和节流
+var _default = {
+  debounce: function debounce(fn, t) {
+    var delay = t || 500;
+    var timer;
+    return function () {var _this = this;
+      var args = arguments;
+      if (timer) {
+        clearTimeout(timer);
+      }
+      timer = setTimeout(function () {
+        timer = null;
+        fn.apply(_this, args);
+      }, delay);
+    };
+  } };exports.default = _default;
 
 /***/ })
 

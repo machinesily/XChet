@@ -1,14 +1,18 @@
-var dbserver = require('../dao/dbserver')
-//引入邮箱发送方法
+//邮箱发送方法
 var emailserver = require('../dao/emailserver.js')
-//引入注册页面服务
+//注册页面服务
 var signup = require('../server/signup')
-//引入登录页面服务
+//登录页面服务
 var login = require('../server/login')
-//引入搜索页面服务
+//搜索页面服务
 var search = require('../server/search')
 //用户详情页面服务
 var userdetail = require('../server/userdetial')
+//好友操作页面服务
+var friend = require('../server/friend')
+//主页操作页面服务
+var index = require('../server/index')
+
 
 
 module.exports = function (app) {
@@ -41,9 +45,9 @@ module.exports = function (app) {
     login.login(req, res)
   })
 
-  // //token测试
+  //token测试
   // app.post('/login/token', (req, res) => {
-  //   res.send('这里token正确')
+  //   search.searchUser(req,res)
   // })
 
   //搜索页面
@@ -76,8 +80,64 @@ module.exports = function (app) {
   app.post('/user/update', (req, res) => {
     userdetail.userUpdata(req,res)
   })
+  //好友备注获取
+  app.post('/user/getalias', (req, res) => {
+    userdetail.getFriendAlias(req,res)
+  })
   //好友备注修改
   app.post('/user/alias', (req, res) => {
     userdetail.friendAliasUpdate(req,res)
+  })
+
+  //好友操作
+  //好友申请
+  app.post('/friend/apply', (req, res) => {
+    friend.applyFriend(req,res)
+  })
+
+  //好友状态修改
+  app.post('/friend/update', (req, res) => {
+    friend.updateFriendState(req,res)
+  })
+
+  //拒绝好友或删除好友
+  app.post('/friend/delete', (req, res) => {
+    friend.deleteFriend(req,res)
+  })
+
+  //主页
+  //获取好友
+  app.post('/index/getfriend', (req, res) => {
+    index.getFriend(req,res)
+  })
+
+  //获取最后一条消息
+  app.post('/index/getlastmsg', (req, res) => {
+    index.getLastMsg(req,res)
+  })
+
+  //获取未读消息数
+  app.post('/index/unreadmsg', (req, res) => {
+    index.unreadMsg(req,res)
+  })
+
+  //清零未读消息数
+  app.post('/index/updatemsg', (req, res) => {
+    index.updateMsg(req,res)
+  })
+
+  //获取群
+  app.post('/index/getgroup', (req, res) => {
+    index.getGroup(req,res)
+  })
+
+  //获取群最后一条消息
+  app.post('/index/getlastgroupmsg', (req, res) => {
+    index.getLastGroupMsg(req,res)
+  })
+
+  //清零群未读消息数
+  app.post('/index/updategroupmsg', (req, res) => {
+    index.updateGroupMsg(req,res)
   })
 }

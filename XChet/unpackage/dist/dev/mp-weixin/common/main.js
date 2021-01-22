@@ -12,6 +12,9 @@ var _App = _interopRequireDefault(__webpack_require__(/*! ./App */ 5));function 
 
 _vue.default.config.productionTip = false;
 
+//服务器地址 
+_vue.default.prototype.serverUrl = 'http://192.168.0.106:3000';
+
 _App.default.mpType = 'app';
 
 var app = new _vue.default(_objectSpread({},
