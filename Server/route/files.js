@@ -31,9 +31,11 @@ module.exports = function (app){
   //前端文件上传
   app.post('/files/upload', upload.array('file', 10), function (req, res, next) {
    //获取图片名
-    let data = req.files[0].filename
+    let url = req.body.url
+    let name = req.files[0].filename
+    let imgurl = '/'+url+'/'+name
    //返回前端图片名
-    res.send(data)
+    res.send(imgurl)
 
   })
 }

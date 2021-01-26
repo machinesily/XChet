@@ -12,6 +12,8 @@ var userdetail = require('../server/userdetial')
 var friend = require('../server/friend')
 //主页操作页面服务
 var index = require('../server/index')
+//获取聊天信息
+var chat = require('../server/chat')
 
 
 
@@ -139,5 +141,10 @@ module.exports = function (app) {
   //清零群未读消息数
   app.post('/index/updategroupmsg', (req, res) => {
     index.updateGroupMsg(req,res)
+  })
+
+  //聊天页面
+  app.post('/chat/msg', (req, res) => {
+    chat.msg(req,res)
   })
 }

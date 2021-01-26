@@ -1,6 +1,6 @@
 var mongoose = require('mongoose')
 // mongoose.set('useFindAndModify', false)
-var db = mongoose.createConnection('mongodb://localhost:27017/Test',{useNewUrlParser:true,useUnifiedTopology:true,useFindAndModify:false})
+var db = mongoose.createConnection('mongodb://localhost:27017/Xchat',{useNewUrlParser:true,useUnifiedTopology:true,useFindAndModify:false})
 
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {

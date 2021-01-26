@@ -13,7 +13,7 @@ var UserSchema = new Schema({
   birth:{type:String},                       //生日
   phone:{type:Number},                     //电话
   explain:{type:String},                   //介绍
-  imgurl:{type:String,default:'add.png'},  //头像
+  imgurl:{type:String,default:'/user/add.png'},  //头像
   time:{type:Date},                        //注册时间
 })
 

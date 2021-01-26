@@ -95,7 +95,7 @@ exports.useMatch = (data, psw, res) => {
 //搜索用户
 exports.searchUser = (data, res) => {
   let wherestr
-    if (data == 'XChet') {
+    if (data == 'Xchat') {
        wherestr = {}
     } else {
        wherestr = {
@@ -344,7 +344,7 @@ exports.bulidFriend = function(uid,fid,state,res){
   })
 }
 
-//好友最后通讯数据
+//好友最后通讯时间
 exports.upFriendLastTime = function(uid,fid){
   let wherestr = {'userID':uid,'friendID':fid}
   let updatestr = {'lastTime':new Date()}
@@ -371,10 +371,8 @@ exports.inserMsg = function(uid,fid,msg,type,res){
   let message = new Message(data)
   message.save(function (err, result) {
     if (err) {
-      // res.send({status: 500})
       console.log('插入信息错误');
     } else {
-      // res.send({status: 200})
       // console.log('插入信息成功');
     }
   })
@@ -455,7 +453,8 @@ exports.getFriends = (data,res)=>{
         name:ver.friendID.name,
         alias: ver.alias,
         imgurl:ver.friendID.imgurl,
-        lastTime:ver.lastTime
+        lastTime:ver.lastTime,
+        type:0
       }
     })
     res.send({status:200,result})
@@ -487,7 +486,7 @@ exports.getLastMsg = (data, res) => {
 //首页未读消息数获取
 exports.unreadMsg = (data, res) => {
   //条件
-  let wherestr = {'userID':data.uid,'friendID':data.fid,'state':1}
+  let wherestr = {'userID':data.fid,'friendID':data.uid,'state':1}
   Message.countDocuments(wherestr,(err,result) => {
     if(err){
       res.send({status:500})
@@ -525,11 +524,12 @@ exports.getGroup = (data,res)=>{
   query.exec().then((e)=>{
     let result = e.map((ver)=>{
       return {
-        gid:ver.groupID._id,
+        id:ver.groupID._id,
         name:ver.groupID.name,
         imgurl:ver.groupID.imgurl,
         lastTime:ver.lastTime,
-        tip:ver.tip
+        tip:ver.tip,
+        type:1
       }
     })
     res.send({status:200,result})
@@ -573,5 +573,40 @@ exports.updateGroupMsg = (data, res) => {
     }else{
      res.send({status:200})
     }
+  })
+}
+
+//消息操作
+//分页获取数据一对一数据
+exports.msg = (data,res) => {
+  var skipNum = data.nowPage*data.pageSize
+
+  let query = Message.find({})
+  //查询条件
+  query.where({$or:[{'userID':data.uid,'friendID':data.fid},{'userID':data.fid,'friendID':data.uid}]})
+  //排序方式 倒序排列
+  query.sort({'time':-1})
+  //关联的user对象
+  query.populate('userID')
+  //跳过的条数
+  query.skip(skipNum)
+  //每页显示的条数
+  query.limit(data.pageSize)
+  //查询结果
+  query.exec().then((e)=>{
+    let result = e.map((ver) => {
+      return {
+        id:ver._id,
+        message:ver.message,
+        type:ver.type,
+        time:ver.time,
+        fromID:ver.userID._id,
+        imgurl:ver.userID.imgurl,
+      }
+    })
+    res.send({status:200,result})
+  }).catch(err => {
+    console.log(err);
+    res.send({status:500,err,data})
   })
 }
