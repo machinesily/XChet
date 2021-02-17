@@ -320,14 +320,16 @@ export default {
 
 		//上传并裁剪图片
 		upload() {
-			uni.chooseImage({
-				count: 1, //默认9
-				sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
-				sourceType: ['album'], //从相册选择
-				success: res => {
-					this.tempFilePath = res.tempFilePaths.shift();
-				}
-			});
+			if(this.id == this.uid){
+				uni.chooseImage({
+					count: 1, //默认9
+					sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+					sourceType: ['album'], //从相册选择
+					success: res => {
+						this.tempFilePath = res.tempFilePaths.shift();
+					}
+				});
+			}
 		},
 
 		confirm(e) {
@@ -415,10 +417,10 @@ export default {
 				title: '确定退出登录？',
 				success: res => {
 					if (res.confirm) {
+						uni.clearStorage()
 						uni.redirectTo({
 							url: '../login/login'
 						});
-						uni.clearStorage()
 					}
 				}
 			});
