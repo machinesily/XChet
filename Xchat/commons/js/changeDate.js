@@ -1,22 +1,22 @@
 export default {
 	//首页时间转化 (oldData为对方发送消息的时间，nowDate为当前系统时间)
 	changeDate(oleDate) {
-		let old = new Date(oleDate);
-		let now = new Date()
+		const old = new Date(oleDate);
+		const now = new Date()
 
 		//获取oldDate的具体时间
-		let hour = old.getHours()
-		let minute = old.getMinutes()
-		let year = old.getFullYear()
-		let month = old.getMonth() + 1 //获取的比实际要小，所以要加一
-		let day = old.getDate()
+		const hour = old.getHours()
+		const minute = old.getMinutes()
+		const year = old.getFullYear()
+		const month = old.getMonth() + 1 //获取的比实际要小，所以要加一
+		const day = old.getDate()
 
 		//获取nowDate的具体时间
-		let nowhour = now.getHours()
-		let nowminute = now.getMinutes()
-		let nowyear = now.getFullYear()
-		let nowmonth = now.getMonth() + 1
-		let nowday = now.getDate()
+		const nowhour = now.getHours()
+		const nowminute = now.getMinutes()
+		const nowyear = now.getFullYear()
+		const nowmonth = now.getMonth() + 1
+		const nowday = now.getDate()
 
 		//当天的消息
 		if (day === nowday && month === nowmonth && year === nowyear) {
@@ -49,25 +49,6 @@ export default {
 		}
 	},
 
-	//
-	changeTime(oleDate) {
-		let old = new Date(oleDate);
-
-		//获取oldDate的具体时间
-		let hour = old.getHours()
-		let minute = old.getMinutes()
-		let year = old.getFullYear()
-		let month = old.getMonth() + 1 //获取的比实际要小，所以要加一
-		let day = old.getDate()
-
-		if (month < 10) {
-			month = '0' + month
-		}
-		if (day < 10) {
-			day = '0' + day
-		}
-		return year + '-' + month + '-' + day
-	},
 
 	//聊天页面时间转换
 	chatDate(oleDate) {
@@ -129,23 +110,5 @@ export default {
 		}
 	},
 
-	//文件夹上传时间
-	fileName(e) {
-		let old = new Date(e);
-
-		//获取oldDate的具体时间
-		let hour = old.getHours()
-		let minute = old.getMinutes()
-		let year = old.getFullYear()
-		let month = old.getMonth() + 1 //获取的比实际要小，所以要加一
-		let day = old.getDate()
-
-		if (month < 10) {
-			month = '0' + month
-		}
-		if (day < 10) {
-			day = '0' + day
-		}
-		return year + month + day
-	}
+	
 }

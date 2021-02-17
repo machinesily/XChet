@@ -11,7 +11,7 @@ var UserSchema = new Schema({
   mail:{type:String},                      //邮箱
   sex:{type:String,default:'asexual'},     //性别，默认中性
   birth:{type:String},                       //生日
-  phone:{type:Number},                     //电话
+  phone:{type:String},                     //电话
   explain:{type:String},                   //介绍
   imgurl:{type:String,default:'/user/add.png'},  //头像
   time:{type:Date},                        //注册时间
@@ -44,25 +44,26 @@ var GroupSchema = new Schema({
   imgurl:{type:String,default:'group.png'},            //群头像
   time:{type:Date},                                    //创建时间
   lastTime:{type:Date},                               //最后通讯时间
-  notice:{type:Number}                                 //公告
+  notice:{type:String,default:''}                                 //公告
 })
 
 //群成员表
 var GroupUserSchema = new Schema({
   groupID:{type:Schema.Types.ObjectId,ref:'Group'},    //群id
   userID:{type:Schema.Types.ObjectId,ref:'User'},      //用户id
-  name:{type:String},                                  //群内名称
+  aliasName:{type:String,default:''},                                  //群内名称
   tip:{type:Number,default:0},                         //未读消息数
   time:{type:Date},                                    //加入时间
-  shield:{type:Number}                                 //是否屏蔽群消息（0不屏蔽，1屏蔽）
+  lastTime:{type:Date},                                //最后通讯时间
+  shield:{type:Boolean,default:false}                                 //是否屏蔽群消息（0不屏蔽，1屏蔽）
 })
 
-//群成员表
+//群消息表
 var GroupMessageSchema = new Schema({
   groupID:{type:Schema.Types.ObjectId,ref:'Group'},    //群id
   userID:{type:Schema.Types.ObjectId,ref:'User'},      //用户id
   message:{type:String},                               //发送的内容
-  types:{type:String},                                 //发送类型（0文字，1图片，3音频。。。）
+  type:{type:Number},                                 //发送类型（0文字，1图片，3音频。。。）
   time:{type:Date},                                    //生成时间
 })
 module.exports = db.model("User",UserSchema)

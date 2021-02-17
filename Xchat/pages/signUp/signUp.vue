@@ -1,13 +1,13 @@
 <template>
 	<view class="sign">
 		<view class="status_bar"></view>
-		<TopBar>
+		<top-bar>
 			<view class="back" slot="left" @click="toSign"><image src="../../static/images/common/back.png" class="back-img" /></view>
-		</TopBar>
+		</top-bar>
 		<view class="main">
 			<view class="login">注册</view>
 			<view class="wrapper">
-				<input type="text" placeholder="请输入用户名" placeholder-style="#aaa" class="user" v-model="user" @input="matchUser" />
+				<input type="text" placeholder="请输入用户名" placeholder-style="#aaa" class="user" v-model="user" @blur="matchUser" />
 				<view class="user-exist" v-show="userExist">用户名已被注册</view>
 				<image src="../../static/images/sign/right1.png" class="ok" v-show="userCorrect"></image>
 			</view>
@@ -18,7 +18,7 @@
 				<image src="../../static/images/sign/right1.png" class="ok" v-if="mailCorrect"></image>
 			</view>
 			<view class="wrapper">
-				<input :type="type" placeholder="请输入密码" placeholder-style="#aaa" class="password" @input="writePassword"/>
+				<input :type="type" placeholder="请输入密码" placeholder-style="#aaa" class="password" @input="writePassword" />
 				<image src="../../static/images/sign/look.png" v-show="look" @click="pwLook"></image>
 				<image src="../../static/images/sign/biyan.png" v-show="!look" @click="pwLook"></image>
 			</view>
@@ -28,35 +28,31 @@
 </template>
 
 <script>
-import TopBar from '../../components/top-bar/TopBar.vue';
 export default {
 	data() {
 		return {
 			user: '',
 			mail: '',
-			password:'',
-			userExist: false,        //判断邮箱是否已存在
-			userCorrect: false,      //用户名是否可用
-			mailExist: false,        //判断用户名是否已存在
-			mailIncorrect: false,    //邮箱格式错误显示
-			mailCorrect: false,      //邮箱格式正确且无占用显示
-			type: 'password',        //密码的显示类型
-			look: false,             //判断密码的类型显示
-			submit: false            //判断是否可以注册了
+			password: '',
+			userExist: false, //判断邮箱是否已存在
+			userCorrect: false, //用户名是否可用
+			mailExist: false, //判断用户名是否已存在
+			mailIncorrect: false, //邮箱格式错误显示
+			mailCorrect: false, //邮箱格式正确且无占用显示
+			type: 'password', //密码的显示类型
+			look: false, //判断密码的类型显示
+			submit: false //判断是否可以注册了
 		};
 	},
-	components: {
-		TopBar
-	},
-	computed:{
+	computed: {
 		//可以注册后，注册按钮高亮
-		signup(){
-			if(this.userCorrect && this.mailCorrect && !this.mailExist && this.password.length>1){
-				this.submit = true
-			}else{
-				this.submit = false
+		signup() {
+			if (this.userCorrect && this.mailCorrect && !this.mailExist && this.password.length > 1) {
+				this.submit = true;
+			} else {
+				this.submit = false;
 			}
-		},
+		}
 	},
 	methods: {
 		//返回登录页面
@@ -65,38 +61,27 @@ export default {
 				delta: 1
 			});
 		},
-		
+
 		//判断用户名是否存在
 		matchUser() {
 			if (this.user.length > 0) {
-				uni.request({
-					url: this.serverUrl+'/signup/judge',
-					data: {
-						type: 'name',
-						data: this.user
-					},
-					method: 'POST',
-					success: data => {
-						//如果请求成功
-						if(data.data.status == 200){
-							if (data.data.result > 0) {
-								//查找该用户数大于0表示用户存在
-								this.userExist = true; //显示用户已存在
-								this.userCorrect = false; //隐藏正确的图片
-							} else {
-								this.userExist = false;
-								this.userCorrect = true; //显示正确的图片
-							}
-							this.signup
-						} else if(data.data.status == 500){
-								//弹出提醒
-								uni.showToast({
-									title:'服务器出错了',
-									icon:'none',
-									duration:2000
-								})
-						}
+				const url = '/signup/judge';
+				const data = {
+					type: 'name',
+					data: this.user
+				};
+				this.request(url, data)
+				this.request(url, data).then(res => {
+					console.log(res);
+					if (res > 0) {
+						//查找该用户数大于0表示用户存在
+						this.userExist = true; //显示用户已存在
+						this.userCorrect = false; //隐藏正确的图片
+					} else {
+						this.userExist = false;
+						this.userCorrect = true; //显示正确的图片
 					}
+					this.signup;
 				});
 			} else {
 				//所有提示都不显示
@@ -104,7 +89,7 @@ export default {
 				this.userCorrect = false;
 			}
 		},
-		
+
 		//判断邮箱格式是否符合
 		matchMail() {
 			let rePass = new RegExp('^([a-zA-Z0-9]+[_|\\_|\\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\\_|\\.]?)*[a-zA-Z0-9]+\\.[a-zA-Z]{2,3}$', '');
@@ -113,38 +98,26 @@ export default {
 				//输入字数不为0
 				if (!isPass) {
 					//如果不正确
-					this.mailIncorrect = true;  //显示邮箱不正确图标
-					this.mailCorrect = false;   //隐藏邮箱正确图标
+					this.mailIncorrect = true; //显示邮箱不正确图标
+					this.mailCorrect = false; //隐藏邮箱正确图标
 				} else {
 					//邮箱格式正确发送网络请求
 					this.mailIncorrect = false;
-					uni.request({
-						url: this.serverUrl+'/signup/judge',
-						data: {
-							type: 'mail',
-							data: this.mail
-						},
-						method: 'POST',
-						success: data => {
-							if(data.data.status == 200){
-								if (data.data.result > 0) {
-									//邮箱已存在
-									this.mailExist = true;
-									this.mailCorrect = false;
-								} else {
-									this.mailExist = false;
-									this.mailCorrect = true;
-								}
-								this.signup
-							} else if(data.data.status == 500){
-								//弹出提醒
-								uni.showToast({
-									title:'服务器出错了',
-									icon:'none',
-									duration:2000
-								})
-							}
+					const url = '/signup/judge';
+					const data = {
+						type: 'mail',
+						data: this.mail
+					};
+					this.request(url, data).then(res => {
+						if (res > 0) {
+							//邮箱已存在
+							this.mailExist = true;
+							this.mailCorrect = false;
+						} else {
+							this.mailExist = false;
+							this.mailCorrect = true;
 						}
+						this.signup;
 					});
 				}
 			} else {
@@ -153,7 +126,7 @@ export default {
 				this.mailIncorrect = false;
 			}
 		},
-		
+
 		//密码显示的样式
 		pwLook() {
 			if (this.look == false) {
@@ -164,39 +137,27 @@ export default {
 				this.type = 'password';
 			}
 		},
-		
+
 		//把密码写入到data中
-		writePassword(event){
-			this.password = event.target.value
-			this.signup
+		writePassword(event) {
+			this.password = event.target.value;
+			this.signup;
 		},
-		
+
 		//注册提交
-		signUp(){
-			if(this.userCorrect && this.mailCorrect && !this.mailExist && this.password.length>1){
-				uni.request({
-					url: this.serverUrl+'/signup/add',
-					data:{
-						name: this.user,
-						mail: this.mail,
-						psw:  this.password
-					},
-					method:'POST',
-					success: data => {
-						if(data.data.status == 200){
-							uni.redirectTo({
-								url:'../login/login?user='+this.user
-							})
-						}else if(data.data.status == 500){
-								//弹出提醒
-								uni.showToast({
-									title:'服务器出错了',
-									icon:'none',
-									duration:2000
-								})
-							}
-					}
-				})
+		signUp() {
+			if (this.userCorrect && this.mailCorrect && !this.mailExist && this.password.length > 1) {
+				const url = '/signup/add';
+				const data = {
+					name: this.user,
+					mail: this.mail,
+					psw: this.password
+				};
+				this.request(url, data).then(res => {
+					uni.redirectTo({
+						url: '../login/login?user=' + this.user
+					});
+				});
 			}
 		}
 	}
@@ -204,10 +165,10 @@ export default {
 </script>
 
 <style lang="scss">
-	.status_bar {
-		height: var(--status-bar-height);
-		width: 100%;
-	}
+.status_bar {
+	height: var(--status-bar-height);
+	width: 100%;
+}
 
 .back-img {
 	width: 44rpx;
@@ -239,8 +200,7 @@ export default {
 		padding-top: 76rpx;
 		width: 630rpx;
 	}
-	.password{
-		
+	.password {
 	}
 	.submit {
 		width: 520rpx;

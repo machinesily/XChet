@@ -1,4 +1,4 @@
-//防抖和节流
+//防抖
 export function debounce(fn, t) {
 		let delay = t || 500;
 		let timer;

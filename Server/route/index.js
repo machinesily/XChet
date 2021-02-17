@@ -14,7 +14,10 @@ var friend = require('../server/friend')
 var index = require('../server/index')
 //获取聊天信息
 var chat = require('../server/chat')
-
+//创建群页面服务
+var group = require('../server/group')
+//创建群首页服务
+var groupHome = require('../server/groupHome')
 
 
 module.exports = function (app) {
@@ -108,6 +111,7 @@ module.exports = function (app) {
   })
 
   //主页
+  /** 以下为废弃部分 */
   //获取好友
   app.post('/index/getfriend', (req, res) => {
     index.getFriend(req,res)
@@ -123,11 +127,6 @@ module.exports = function (app) {
     index.unreadMsg(req,res)
   })
 
-  //清零未读消息数
-  app.post('/index/updatemsg', (req, res) => {
-    index.updateMsg(req,res)
-  })
-
   //获取群
   app.post('/index/getgroup', (req, res) => {
     index.getGroup(req,res)
@@ -136,6 +135,22 @@ module.exports = function (app) {
   //获取群最后一条消息
   app.post('/index/getlastgroupmsg', (req, res) => {
     index.getLastGroupMsg(req,res)
+  })
+  /** 以上为废弃部分 */
+
+  // 获取好友信息和未读消息
+  app.post('/index/getmsg', (req, res) => {
+    index.indexGetMsg(req,res)
+  })
+
+  //清零好友未读消息数
+  app.post('/index/updatemsg', (req, res) => {
+    index.updateMsg(req,res)
+  })
+
+  // 获取群信息和未读消息
+  app.post('/index/getgroupmsg', (req, res) => {
+    group.getGroupMsg(req,res)
   })
 
   //清零群未读消息数
@@ -146,5 +161,35 @@ module.exports = function (app) {
   //聊天页面
   app.post('/chat/msg', (req, res) => {
     chat.msg(req,res)
+  })
+
+  //群聊天页面
+  app.post('/chat/groupMsg', (req, res) => {
+    chat.groupMsg(req,res)
+  })
+
+  //建群页
+  //建群
+  app.post('/group/create', (req, res) => {
+    group.createGroup(req,res)
+  })
+
+  // 群首页
+  // 获取群信息
+  app.post('/grouphome/msg', (req, res) => {
+    groupHome.groupHome(req,res)
+  })
+  // 获取群成员
+  app.post('/grouphome/member', (req, res) => {
+    groupHome.groupMember(req,res)
+  })
+  // // 添加群成员
+  // app.post('/grouphome/addmember', (req, res) => {
+  //   groupHome.addMember(req,res)
+  // })
+
+  // 退出群
+  app.post('/grouphome/exit', (req, res) => {
+    groupHome.exitGroup(req,res)
   })
 }

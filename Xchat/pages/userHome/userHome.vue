@@ -1,10 +1,10 @@
 <template>
 	<view>
 		<view class="status_bar"></view>
-		<TopBar>
+		<top-bar>
 			<image src="../../static/images/common/back.png" mode="" class="back" slot="left" @click="back"></image>
 			<image src="../../static/images/userhome/more.png" mode="" slot="right" class="more" v-if="relation == 0 || relation == 1" @tap="userDetial" />
-		</TopBar>
+		</top-bar>
 		<view class="bg"><image :src="user.imgurl" mode="aspectFill" /></view>
 		<view class="main">
 			<view class="user-header">
@@ -19,7 +19,7 @@
 		</view>
 		<view class="foot">
 			<view class="button" @click="addFriendBtn()" v-if="relation == 2">加为好友</view>
-			<view class="button" v-if="relation == 1">发送消息</view>
+			<view class="button" v-if="relation == 1" @tap="toChatRoom">发送消息</view>
 		</view>
 		<view class="add" :style="{ height: addHeight + 'px', bottom: -addHeight + 'px' }" :animation="animationData">
 			<view class="name">{{ user.name }}</view>
@@ -33,7 +33,6 @@
 </template>
 
 <script>
-import TopBar from '../../components/top-bar/TopBar.vue';
 export default {
 	data() {
 		return {
@@ -51,11 +50,9 @@ export default {
 			animationData1: {}, //头像的动画
 			animationData2: {}, //性别的动画
 			message: '', //添加好友的信息
-			isAdd: false
+			isAdd: false,
+			change:false  //检测用户详情页是否更改了头像
 		};
-	},
-	components: {
-		TopBar
 	},
 	onReady() {
 		this.getElementStyle();
@@ -66,12 +63,13 @@ export default {
 		this.getUser();
 		this.judgeFriend();
 	},
+	onBackPress() {
+		uni.$emit('refresh',{msg:'页面更新'})
+	},
 	methods: {
 		//返回上一页
 		back() {
-			uni.navigateBack({
-				delta: 1
-			});
+			uni.navigateBack();
 		},
 
 		//跳转到用户详情
@@ -79,6 +77,12 @@ export default {
 			uni.navigateTo({
 				url: '../userDetails/userDetails?id=' + this.fid
 			});
+		},
+		
+		toChatRoom(){
+			uni.navigateTo({
+				url: `../chatRoom/chatRoom?id=${this.fid}&name=${this.user.name}&type=0&imgurl=${this.user.imgurl}`,
+			})
 		},
 
 		//获取缓存数据
@@ -101,45 +105,25 @@ export default {
 
 		//获取用户信息
 		getUser() {
-			uni.request({
-				url: this.serverUrl + '/user/detail',
-				data: {
-					id: this.fid,
-					token: this.token
-				},
-				method: 'POST',
-				success: data => {
-					console.log(data);
-					if (data.data.status == 200) {
-						//访问后端成功，登录成功
-						let res = data.data.result;
-						//处理头像链接
-						res.imgurl = this.serverUrl + res.imgurl;
-						//处理简介
-						if (!res.explain) {
-							res.explain = '这个人很懒，什么都没有留下~~';
-						}
-						//处理alias
-						if (this.alias) {
-							this.alias = res.name;
-						}
-						this.sexJudge(res.sex);
-						this.user = res;
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
-					}
+			const url = '/user/detail'
+			const data = {
+				id: this.fid,
+				token: this.token
+			}
+			this.request(url, data).then(res => {
+				//处理头像链接
+				res.imgurl = this.serverUrl + res.imgurl;
+				//处理简介
+				if (!res.explain) {
+					res.explain = '这个人很懒，什么都没有留下~~';
 				}
-			});
+				//处理alias
+				if (this.alias) {
+					this.alias = res.name;
+				}
+				this.sexJudge(res.sex);
+				this.user = res;
+			})
 		},
 
 		//性别判断
@@ -164,40 +148,19 @@ export default {
 			if (this.fid == this.uid) {
 				this.relation = 0;
 			} else {
-				//如果不是好友，进行后端访问验证
-				uni.request({
-					url: this.serverUrl + '/search/isfriend',
-					data: {
-						uid: this.uid,
-						fid: this.fid,
-						token: this.token
-					},
-					method: 'POST',
-					success: data => {
-						if (data.data.status == 200) {
-							//是好友
-							this.relation = 1;
-							if (typeof data.data.result.alias) {
-								this.alias = data.data.result.alias;
-							}
-						} else if (data.data.status == 300) {
-							//token过期，跳转到登录页面
-							uni.redirectTo({
-								url: '../login/login?name=' + this.myname
-							});
-						} else if (data.data.status == 400) {
-							//陌生人
-							this.relation = 2;
-						} else if (data.data.status == 500) {
-							//服务器错误
-							uni.showToast({
-								title: '服务器出错了',
-								icon: 'none',
-								duration: 2000
-							});
-						}
+				const url = '/search/isfriend'
+				const data = {
+					uid: this.uid,
+					fid: this.fid,
+					token: this.token
+				}
+				this.request(url, data).then(res => {
+					//是好友
+					this.relation = 1;
+					if (typeof res.alias) {
+						this.alias = res.alias;
 					}
-				});
+				})
 			}
 		},
 
@@ -209,43 +172,24 @@ export default {
 
 		//添加好友确认
 		addFriend() {
-			uni.request({
-				url: this.serverUrl + '/friend/apply',
-				data: {
-					uid: this.uid,
-					fid: this.fid,
-					msg: this.message,
-					token: this.token
-				},
-				method: 'POST',
-				success: data => {
-					if (data.data.status == 200) {
-						//访问后端成功，登录成功
-						this.addAnimation();
-						uni.showToast({
-							title: '好友请求发送成功',
-							icon: 'none',
-							duration: 2000
-						});
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						this.addAnimation();
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
-					}
-				}
-			});
+			const url = '/friend/apply'
+			const data = {
+				uid: this.uid,
+				fid: this.fid,
+				msg: this.message,
+				token: this.token
+			}
+			this.request(url, data).then(res => {
+				this.addAnimation();
+				uni.showToast({
+					title: '好友请求发送成功',
+					icon: 'none',
+					duration: 2000
+				});
+			})
 		},
 
-		//获取设备的高度
+		//获取修改页面的高度
 		getElementStyle() {
 			const query = uni.createSelectorQuery().in(this);
 			query

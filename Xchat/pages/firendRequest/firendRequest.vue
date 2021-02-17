@@ -1,13 +1,13 @@
 <template>
 	<view>
 		<view class="status_bar"></view>
-		<TopBar class="top-bar">
+		<top-bar class="top-bar">
 			<image src="../../static/images/common/back.png" class="back" slot="left" @click="back" />
 			<view class="title" slot="center">好友请求</view>
 			<view class="confirm" slot="right"></view>
-		</TopBar>
+		</top-bar>
 		<view class="main">
-			<view class="request" v-for="(item, index) of request" :key="index">
+			<view class="request" v-for="(item, index) of friends" :key="index">
 				<view class="request-top">
 					<view class="reject btn" @tap="reject(item.id)">拒绝</view>
 					<view class="head-img"><image :src="item.imgurl"></image></view>
@@ -15,31 +15,42 @@
 				</view>
 				<view class="request-name">
 					<view class="title">{{ item.name }}</view>
-					<view class="time">{{ changeDate(item.lastTime) }}</view>
+					<view class="time">{{ item.lastTime | timeChange }}</view>
 				</view>
-				<view class="notic">{{item.msg}}</view>
+				<view class="notic">{{ item.message }}</view>
 			</view>
 		</view>
 	</view>
 </template>
 
 <script>
-import TopBar from '../../components/top-bar/TopBar.vue';
-import changeDate from '../../commons/js/changeDate.js';
 export default {
 	onLoad() {
 		this.getStorages();
 		this.friendRequest();
 	},
-	components: {
-		TopBar
+	filters: {
+		//时间过滤器
+		timeChange(date) {
+			const nDate = new Date(date);
+			const year = nDate
+				.getFullYear()
+				.toString()
+				.padStart(2, 0);
+			const month = (nDate.getMonth() + 1).toString().padStart(2, 0);
+			const day = nDate
+				.getDate()
+				.toString()
+				.padStart(2, 0);
+			return year + '-' + month + '-' + day;
+		}
 	},
 	data() {
 		return {
 			uid: '',
 			token: '',
 			myname: '',
-			request: []
+			friends: []
 		};
 	},
 	methods: {
@@ -74,152 +85,66 @@ export default {
 
 		//获取申请好友信息
 		friendRequest() {
-			uni.request({
-				url: this.serverUrl + '/index/getfriend',
-				data: {
-					uid: this.uid,
-					token: this.token,
-					state: 1
-				},
-				method: 'POST',
-				success: data => {
-					// console.log(data);
-					if (data.data.status == 200) {
-						let res = data.data.result;
-						for (let i in res) {
-							res[i].imgurl = this.serverUrl + res[i].imgurl;
-							this.getMsg(res,i)
-						}
-						this.request = res;
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
-					}
+			const url = '/index/getmsg';
+			const data = {
+				uid: this.uid,
+				token: this.token,
+				state: 1
+			};
+			this.request(url, data).then(res => {
+				for (let i in res) {
+					res[i].imgurl = this.serverUrl + res[i].imgurl;
 				}
+				this.friends = res;
 			});
 		},
-		
-		//获取留言
-		getMsg(arr,i) {
-			uni.request({
-				url: this.serverUrl + '/index/getlastmsg',
-				data: {
-					uid: this.uid,
-					fid:arr[i].id,
-					token: this.token,
-				},
-				method: 'POST',
-				success: data => {
-					// console.log(data);
-					if (data.data.status == 200) {
-						let res = data.data.result;
-						let e = arr[i]
-						e.msg = res.message
-						arr.splice(i,1,e)
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
-					}
-				}
-			});
-		},
-		
+
 		//拒绝，删除好友
-		reject(fid){
-			uni.request({
-				url: this.serverUrl + '/friend/delete',
-				data: {
-					uid: this.uid,
-					fid:fid,
-					token: this.token,
-				},
-				method: 'POST',
-				success: data => {
-					if (data.data.status == 200) {
-						for(let i in this.request){
-							if(this.request[i].id == fid){
-								this.request.splice(i,1)
-							}
-						}
-						uni.showToast({
-							title: '删除好友成功',
-							icon: 'none',
-							duration: 2000
-						})
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
+		reject(fid) {
+			const url = '/friend/delete';
+			const data = {
+				uid: this.uid,
+				fid: fid,
+				token: this.token
+			};
+			this.request(url, data).then(res => {
+				for (let i in this.friends) {
+					if (this.friends[i].id == fid) {
+						this.friends.splice(i, 1);
 					}
 				}
+				uni.showToast({
+					title: '删除好友成功',
+					icon: 'none',
+					duration: 2000
+				});
 			});
 		},
-		
+
 		//同意，添加好友
-		aggree(fid){
-			uni.request({
-				url: this.serverUrl + '/friend/update',
-				data: {
-					uid: this.uid,
-					fid:fid,
-					token: this.token,
-				},
-				method: 'POST',
-				success: data => {
-					if (data.data.status == 200) {
-						for(let i in this.request){
-							if(this.request[i].id == fid){
-								this.request.splice(i,1)
-							}
-						}
-						uni.showToast({
-							title: '添加好友成功',
-							icon: 'none',
-							duration: 2000
-						})
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
+		aggree(fid) {
+			const url = '/friend/update';
+			const data = {
+				uid: this.uid,
+				fid: fid,
+				token: this.token
+			};
+			this.request(url, data).then(res => {
+				for (let i in this.friends) {
+					if (this.friends[i].id == fid) {
+						this.friends.splice(i, 1);
 					}
 				}
+				uni.redirectTo({
+					url:'../index/index'
+				})
+				uni.showToast({
+					title: '添加好友成功',
+					icon: 'none',
+					duration: 2000
+				});
 			});
 		}
-			
 	}
 };
 </script>
@@ -228,9 +153,10 @@ export default {
 .status_bar {
 	height: var(--status-bar-height);
 	width: 100%;
+	background-color: rgba(244, 244, 244, 0.96);
 }
 .top-bar {
-	background-color: rgba(244,244,244,0.96);
+	background-color: rgba(244, 244, 244, 0.96);
 	border-bottom: 1px solid $uni-border-color; //底部分割线
 	.back {
 		float: left;

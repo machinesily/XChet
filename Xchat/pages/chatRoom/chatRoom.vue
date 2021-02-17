@@ -3,75 +3,29 @@
 		<top-bar class="top-bar">
 			<image src="../../static/images/common/back.png" class="back" slot="left" @click="back"></image>
 			<view class="title" slot="center">{{ fname }}</view>
-			<image src="../../static/images/userhome/more.png" slot="right" class="more" />
+			<image :src="fimgurl" slot="right" class="more" v-show="type == 1" @tap="goGroupHome" />
 		</top-bar>
-		<scroll-view class="chat-wrapper" scroll-y="true" scroll-with-animation="true" :scroll-into-view="scrollToView" @scrolltoupper="scrolltoupper">
-			<view class="test"></view>
-			<view class="chat" :style="{ paddingBottom: sendHeight + 'px' }">
-				<view class="loading" :animation="animationData" v-show="isLoading"><image src="../../static/images/chatRoom/loading.png"></image></view>
-				<view class="chat-ls" v-for="(item, index) in msgs" :key="index" :id="'msg' + item.id">
-					<view class="time" v-if="item.time != ''">{{ changeDate(item.time) }}</view>
-					<!-- 好友 -->
-					<view class="content left" v-if="item.fromID != uid">
-						<image :src="item.imgurl" class="user-img" />
-						<view class="msg-wrapper">
-							<!-- 文字 -->
-							<view class="message" v-if="item.type == 0">{{ item.message }}</view>
-							<!-- 图片 -->
-							<image class="photo" :src="item.message" v-if="item.type == 1" mode="widthFix" @tap="previewImg(item.message)" />
-							<!-- <view class="" v-if="item.type == 1">	{{item}}</view> -->
-							<!-- 语音 -->
-							<view class="message record" v-if="item.type == 2" :style="{ width: item.message.time * 10 + 'px' }" @tap="playRecord(item.message.record)">
-								<image src="../../static/images/chatRoom/voice.png" class="record-img" />
-								{{ item.message.time }}″
-							</view>
-							<!-- 位置 -->
-							<view class="map" v-if="item.type == 3" @tap="openLocation(item.message)">
-								<view class="map-name">{{ item.message.name }}</view>
-								<view class="map-address">{{ item.message.address }}</view>
-								<view class="map-img"><image :src="mapImg(item.message)" /></view>
-							</view>
-						</view>
-					</view>
-					<!-- 自己 -->
-					<view class="content right" v-if="item.fromID == uid">
-						<image :src="item.imgurl" class="user-img" />
-						<view class="msg-wrapper">
-							<!-- 文字 -->
-							<view class="message" v-if="item.type == 0">{{ item.message }}</view>
-							<!-- 图片 -->
-							<image class="photo" :src="item.message" v-if="item.type == 1" mode="widthFix" @tap="previewImg(item.message)" />
-							<!-- 语音 -->
-							<view class="message record" v-if="item.type == 2" :style="{ width: item.message.time * 10 + 'px' }" @tap="playRecord(item.message.record)">
-								<image src="../../static/images/chatRoom/voice.png" class="record-img" />
-								{{ item.message.time }}″
-							</view>
-							<!-- 位置 -->
-							<view class="map" v-if="item.type == 3" @tap="openLocation(item.message)">
-								<view class="map-name">{{ item.message.name }}</view>
-								<view class="map-address">{{ item.message.address }}</view>
-								<view class="map-img"><image :src="mapImg(item.message)" /></view>
-							</view>
-						</view>
-					</view>
-				</view>
-			</view>
+		<scroll-view
+			class="chat-wrapper"
+			:style="{ paddingBottom: sendHeight + 'px' }"
+			scroll-y="true"
+			scroll-with-animation="true"
+			:scroll-into-view="scrollToView"
+			@scrolltoupper="scrolltoupper"
+		>
+			<chat-room :msgs="msgs" :uid="uid" :imgs="imgs" :scrollToView="scrollToView" @goUserHome="goUserHome" ref="chatRoom" />
 		</scroll-view>
-		<send @send="sendMsg" @heights="heights"></send>
+		<send @send="sendMsg" @heights="heights" ref="send"/>
 	</view>
 </template>
 
 <script>
-import TopBar from '../../components/top-bar/TopBar.vue';
 import send from '../../components/chatSend/chet-send.vue';
-import datas from '../../commons/js/datas.js';
-import changeDate from '../../commons/js/changeDate.js';
-//创建音频组件实例
-const innerAudioContext = uni.createInnerAudioContext();
+import chatRoom from '../../components/chat-room/chat-room.vue';
 export default {
 	components: {
-		TopBar,
-		send
+		send,
+		chatRoom
 	},
 	onLoad(e) {
 		this.fid = e.id;
@@ -80,12 +34,13 @@ export default {
 		this.fimgurl = e.imgurl;
 		this.getStorages();
 		this.getMsg();
-		this.receiveScoketMsg();
-		// this.loading()
+		this.scoketMsg();
+		this.scoketGroupMsg()
 	},
-	onBackPress() {
-		//返回时停止
-		innerAudioContext.stop();
+	onPullDownRefresh: () => {
+		setTimeout(function() {
+			uni.stopPullDownRefresh();
+		}, 300);
 	},
 	mounted() {
 		let view = uni
@@ -98,7 +53,7 @@ export default {
 					size: true
 				},
 				data => {
-					// console.log("得到节点信息" + JSON.stringify(data));
+					console.log(data.height);
 					this.sendHeight = data.height - 129;
 				}
 			)
@@ -110,12 +65,31 @@ export default {
 					size: true
 				},
 				data => {
-					// console.log("得到节点信息" + JSON.stringify(data));
+					console.log(data.height);
 					this.sendHeight = data.height;
 				}
 			)
 			.exec();
 		//#endif
+	},
+	onBackPress() {
+		this.$refs.chatRoom.palyStop(); //暂停语音播放
+		uni.$emit('refresh',{msg:'页面更新'})
+		//把后端的消息表状态改为已读
+		let pages = getCurrentPages();
+			let url = ''
+			if(this.type == 0){
+				url = '/index/updatemsg';
+			} else {
+				url = '/index/updategroupmsg'
+			}
+			const data = {
+				uid: this.uid,
+				fid: this.fid,
+				token: this.token
+			};
+			this.request(url, data);
+		// }
 	},
 	data() {
 		return {
@@ -127,16 +101,13 @@ export default {
 			fname: '', //好友的名字
 			fimgurl: '', //好友头像地址
 			type: '', //0是私聊，1是群聊
-			msgs: [],
-			imgs: [],
+			msgs: [], //聊天信息数组
+			imgs: [], //图片数组
 			scrollToView: '', //某子元素id（id不能以数字开头）。设置哪个方向可滚动，则在哪个方向滚动到该元素
-			sendHeight: 0, //输入栏的高度，聊天页面距离底部的距离,
-			isPalying: false,
-			animationData: {}, //动画
+			sendHeight: 0, //输入栏的高度，聊天页面距离底部的距离
 			nowPage: 0,
-			pageSize: 10,
-			isLoading: false,
-			load: '' //加载的定时器
+			pageSize: 13,
+			isLoading: false
 		};
 	},
 	methods: {
@@ -161,103 +132,93 @@ export default {
 		},
 
 		back() {
-			uni.navigateBack({});
-			innerAudioContext.stop();
-		},
-
-		loading() {
-			var animation = uni.createAnimation({
-				duration: 1000,
-				timingFunction: 'easy'
+			uni.navigateBack({
+				delta: 1
 			});
-			this.animation = animation;
-			let i = 1;
-			this.load = setInterval(
-				function() {
-					animation.rotate(i * 30).step();
-					this.animationData = animation.export();
-					i++;
-				}.bind(this),
-				100
-			);
 		},
 
 		//获取聊天数据
 		getMsg() {
-			uni.request({
-				url: this.serverUrl + '/chat/msg',
-				data: {
+			var url = '';
+			var data = {}
+			if (this.type == 0) {
+				//是私聊
+				url = '/chat/msg';
+				data = {
 					uid: this.uid,
 					fid: this.fid,
 					nowPage: this.nowPage,
 					pageSize: this.pageSize,
 					token: this.token
-				},
-				method: 'POST',
-				success: data => {
-					if (data.data.status == 200) {
-						//访问后端成功，登录成功
-						let res = data.data.result;
-						console.log(res);
-						let time = 0;
-						if (res.length > 0) {
-							for (var i in res) {
-								res[i].imgurl = this.serverUrl + res[i].imgurl;
-								//时间间隔处理,超过五分钟显示时间
-								if (new Date(res[i].time) > time + 1000 * 60 * 5) {
-									time = res[i].time;
-								} else {
-									res[i].time = '';
-								}
-								//图片处理
-								if (res[i].type == 1) {
-									res[i].message = this.serverUrl + res[i].message;
-									this.imgs.unshift(res[i].message);
-								}
-								//定位，语音处理
-								if (res[i].type == 2 || res[i].type == 3){
-									res[i].message = JSON.parse(res[i].message)
-									console.log(res[i].message);
-								}
-								this.msgs.unshift(res[i]);
-							}
-							this.$nextTick(function() {
-								this.scrollToView = 'msg' + this.msgs[i].id;
-							});
+				};
+			} else if (this.type == 1) {
+				// 是群聊
+				url = '/chat/groupMsg';
+				data = {
+					gid: this.fid,
+					nowPage: this.nowPage,
+					pageSize: this.pageSize,
+					token: this.token
+				};
+			}
+
+			this.request(url, data).then(res => {
+				if (res.length > 0) {
+					for (var i in res) {
+						res[i].imgurl = this.serverUrl + res[i].imgurl;
+						//图片处理
+						if (res[i].type == 1) {
+							res[i].message = this.serverUrl + res[i].message;
+							this.imgs.unshift(res[i].message);
 						}
-						//判断nowPage
-						if (res.length == 10) {
-							this.nowPage++;
+						//定位，语音处理
+						if (res[i].type == 2 || res[i].type == 3) {
+							res[i].message = JSON.parse(res[i].message);
+						}
+						this.msgs.unshift(res[i]);
+					}
+					//时间间隔处理,超过五分钟显示时间
+					let time = 0;
+					for (let item of this.msgs) {
+						if (new Date(item.time).getTime() > time + 1000 * 60 * 5) {
+							time = new Date(item.time).getTime();
 						} else {
-							this.nowPage = -1;
+							item.time = '';
 						}
-						if (this.isLoading) {
-							clearInterval(this.load);
-							this.isLoading = false;
-						}
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
+					}
+					if (this.nowPage == 0) {
+						this.$nextTick(() => {
+							setTimeout(() => {
+								this.scrollToView = 'msg' + this.msgs[i].id;
+							}, 300);
 						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
+					} else {
+						this.$nextTick(() => {
+							this.scrollToView = 'msg' + res[0].id;
 						});
 					}
+				}
+				//判断nowPage
+				if (res.length == this.pageSize) {
+					this.nowPage++;
+				} else {
+					this.nowPage = -1;
+				}
+				if (this.isLoading) {
+					uni.stopPullDownRefresh();
 				}
 			});
 		},
 
-		//滑动到顶部时
+		// 滑动到顶部时
 		scrolltoupper() {
 			if (this.nowPage != -1) {
-				this.loading();
-				this.isLoading = true;
-				this.getMsg()
+				uni.startPullDownRefresh({
+					success: () => {
+						this.isLoading = true;
+						this.getMsg();
+					}
+				});
 			}
 		},
 
@@ -278,7 +239,7 @@ export default {
 				//图片存进显示的数组
 				this.imgs.push(e.message);
 				// 后端存储文件夹名称为年月日
-				let url = changeDate.fileName(new Date());
+				let url = this.fileName(new Date());
 				uni.uploadFile({
 					url: this.serverUrl + '/files/upload',
 					filePath: e.message,
@@ -288,7 +249,6 @@ export default {
 						name: new Date().getTime() + this.uid + Math.floor(Math.random() * 10 + 1)
 					},
 					success: uploadFileRes => {
-						// console.log(uploadFileRes);
 						let data = {
 							message: uploadFileRes.data,
 							type: 1
@@ -305,7 +265,7 @@ export default {
 			if (e.type == 2) {
 				console.log(e);
 				// url是存储文件夹名称为年月日
-				let url = changeDate.fileName(new Date());
+				let url = this.fileName(new Date());
 				uni.uploadFile({
 					url: this.serverUrl + '/files/upload',
 					filePath: e.message.record,
@@ -318,8 +278,8 @@ export default {
 						let recordMsg = {
 							record: uploadFileRes.data,
 							time: e.message.time
-						}
-						recordMsg = JSON.stringify(recordMsg)
+						};
+						recordMsg = JSON.stringify(recordMsg);
 						let data = {
 							message: recordMsg,
 							type: e.type
@@ -328,6 +288,22 @@ export default {
 					}
 				});
 			}
+		},
+
+		//语音文件夹上传时间
+		fileName(e) {
+			let old = new Date(e);
+
+			//获取oldDate的具体时间
+			let hour = old.getHours();
+			let minute = old.getMinutes();
+			let year = old.getFullYear();
+			let month = (old.getMonth() + 1).toString().padStart(2, 0); //获取的比实际要小，所以要加一
+			let day = old
+				.getDate()
+				.toString()
+				.padStart(2, 0);
+			return year + month + day;
 		},
 
 		//接收输入框的信息显示
@@ -348,35 +324,36 @@ export default {
 				id: leng
 			};
 			//时间间隔显示处理
-			for (var i = 1; i < leng; i++) {
-				if (this.msgs[leng - i].time) {
-					break;
+			if (this.msgs.length > 0) {
+				for (var i = 1; i < leng; i++) {
+					if (this.msgs[leng - i].time) {
+						break;
+					}
 				}
-			}
-			let time = this.msgs[leng - i].time;
-			if (data.time > time + 1000 * 60 * 5) {
-				time = data.time;
-			} else {
-				data.time = '';
+				let time = this.msgs[leng - i].time;
+				if (data.time > time + 1000 * 60 * 5) {
+					time = data.time;
+				} else {
+					data.time = '';
+				}
 			}
 			this.msgs.push(data);
 		},
 
-		//接收socket发来的数据
-		receiveScoketMsg() {
+		//接收私聊socket发来的数据
+		scoketMsg() {
 			this.socket.on('msg', (msg, uid, tip) => {
 				if (uid == this.fid && tip == 0) {
-					console.log(msg);
 					let leng = this.msgs.length;
 					if (msg.type == 1) {
 						msg.message = this.serverUrl + msg.message;
 					} else if (msg.type == 2) {
-						msg.message = JSON.parse(msg.message)
+						msg.message = JSON.parse(msg.message);
 						console.log(msg.message);
 						msg.message.record = this.serverUrl + msg.message.record;
-					} else if(msg.type == 3){
+					} else if (msg.type == 3) {
 						//#ifdef H5
-						msg.message = JSON.parse(msg.message)
+						msg.message = JSON.parse(msg.message);
 						//#endif
 						console.log(msg.message);
 					}
@@ -413,6 +390,53 @@ export default {
 				}
 			});
 		},
+		
+		//接受群的socket信息
+		scoketGroupMsg() {
+			this.socket.on('groupMsg', (msg, fromid, gid, fromName, fromImg) => {
+					let leng = this.msgs.length;
+					if (msg.type == 1) {
+						msg.message = this.serverUrl + msg.message;
+					} else if (msg.type == 2) {
+						msg.message = JSON.parse(msg.message);
+						msg.message.record = this.serverUrl + msg.message.record;
+					} else if (msg.type == 3) {
+						//#ifdef H5
+						msg.message = JSON.parse(msg.message);
+						//#endif
+					}
+		
+					let data = {
+						fromID: fromid,
+						imgurl: fromImg,
+						message: msg.message,
+						type: msg.type,
+						time: new Date(),
+						id: leng
+					};
+					//时间间隔显示处理
+					for (var i = 1; i < leng; i++) {
+						if (this.msgs[leng - i].time) {
+							break;
+						}
+					}
+					let time = this.msgs[leng - i].time;
+					if (data.time > time + 1000 * 60 * 5) {
+						time = data.time;
+					} else {
+						data.time = '';
+					}
+					//图片存进显示的数组
+					if (msg.type == 1) {
+						this.imgs.push(msg.message);
+						console.log(this.imgs);
+					}
+					this.msgs.push(data);
+					this.$nextTick(function() {
+						this.scrollToView = 'msg' + this.msgs[leng].id;
+					});
+			});
+		},
 
 		//聊天数据发送到后端
 		sendSocket(e) {
@@ -421,7 +445,7 @@ export default {
 				this.socket.emit('msg', e, this.uid, this.fid);
 			} else {
 				//群聊
-				this.socket.emit('groupMsg', e, this.uid, this.fid);
+				this.socket.emit('groupMsg', e, this.uid, this.fid, this.myname, this.imgurl);
 			}
 		},
 
@@ -442,96 +466,35 @@ export default {
 		getElementStyle() {
 			const query = uni.createSelectorQuery().in(this);
 			query
-				.select('.text')
+				.select('.send')
 				.boundingClientRect(data => {
 					console.log(data);
-					// this.sendHeight = data.height
+					this.sendHeight = data.height;
 				})
 				.exec();
 		},
 
-		//时间转化
-		changeDate: oldData => {
-			return changeDate.chatDate(oldData);
-		},
-
-		//预览图片
-		previewImg(e) {
-			let index = 0;
-			//数组用for in 方法，i是字符串类型,所以需要类型转换
-			for (let i = 0; i < this.imgs.length; i++) {
-				if (this.imgs[i] == e) {
-					index = i;
-					break;
-				}
-			}
-			uni.previewImage({
-				urls: this.imgs,
-				current: index,
-				longPressActions: {
-					itemList: ['发送给朋友', '保存图片', '收藏'],
-					success: function(data) {
-						console.log('选中了第' + (data.tapIndex + 1) + '个按钮,第' + (data.index + 1) + '张图片');
-					},
-					fail: function(err) {
-						console.log(err.errMsg);
-					}
-				}
+		//跳转到群聊管理页面
+		goGroupHome() {
+			this.$refs.send.cancel()
+			setTimeout(() => {
+				this.getElementStyle()
+			},300)
+			uni.navigateTo({
+				url: '../groupHome/groupHome?gid=' + this.fid
 			});
 		},
-
-		//语音播放
-		playRecord(e) {
-			console.log(e);
-			innerAudioContext.src = this.serverUrl + e;
-			console.log(this.isPalying);
-			if (this.isPalying) {
-				innerAudioContext.stop();
-			} else {
-				innerAudioContext.play();
-			}
-			innerAudioContext.onPlay(() => {
-				this.isPalying = true;
-			});
-			innerAudioContext.onStop(() => {
-				this.isPalying = false;
-			});
-
-			innerAudioContext.onError(res => {
-				console.log(res.errMsg);
-				console.log(res.errCode);
-			});
-		},
-
-		//地图图片展示
-		mapImg(e) {
-			//利用高德地图的静态图片
-			return (
-				'https://restapi.amap.com/v3/staticmap?location=' +
-				e.longitude +
-				',' +
-				e.latitude +
-				'&zoom=17&scale=2&size=464*284&markers=mid,0xFF0000,A:' +
-				e.longitude +
-				',' +
-				e.latitude +
-				'&key=af0f6cdaa2398149472eb89bcc688c60'
-			);
-		},
-
-		//打开定位
-		openLocation(e) {
-			console.log('111');
-			uni.openLocation({
-				latitude: e.latitude,
-				longitude: e.longitude,
-				name: e.name,
-				address: e.address,
-				success: function() {
-					console.log('success');
-				}
+		
+		goUserHome(fid){
+			this.$refs.send.cancel()
+			setTimeout(() => {
+				this.getElementStyle()
+			},300)
+			uni.navigateTo({
+				url:'../userHome/userHome?id='+fid
 			});
 		}
+
 	}
 };
 </script>
@@ -561,137 +524,19 @@ page {
 		text-align: left;
 	}
 	.more {
-		padding: 38rpx 0;
-		width: 52rpx;
-		height: 12rpx;
+		width: 68rpx;
+		height: 68rpx;
+		border-radius: $uni-border-radius-sm;
 	}
 }
 .chat-wrapper {
+	width: 100%;
 	height: 100%;
-	// padding-bottom: 90rpx;
-	.test {
-		width: 100%;
-		height: 150rpx;
-	}
-	.chat {
-		// margin-top: 150rpx;
-		padding: 20rpx $uni-spacing-row-base 0rpx;
-		display: flex;
-		flex-direction: column;
-		.loading {
-			text-align: center;
-			image {
-				width: 60rpx;
-				height: 60rpx;
-			}
-		}
-	}
-	.chat-ls {
-		.time {
-			font-size: $uni-font-size-sm;
-			color: $uni-text-color-grey;
-			line-height: 34rpx;
-			padding: 20rpx 0;
-			text-align: center;
-		}
-		.content {
-			display: flex;
-			flex-direction: row;
-			padding: 20rpx 0;
-			.user-img {
-				flex: none;
-				width: $uni-img-size-sm;
-				height: $uni-img-size-sm;
-				border-radius: $uni-border-radius-base;
-			}
-			.msg-wrapper {
-				flex: none;
-				max-width: 480rpx;
-				margin: 0 16rpx;
-				.message {
-					font-size: $uni-font-size-base;
-					color: $uni-text-color;
-					line-height: 44rpx;
-					padding: 18rpx 24rpx;
-					word-break: break-word;
-				}
-				.photo {
-					width: 284rpx;
-					max-height: 320rpx;
-					border-radius: $uni-border-radius-base;
-				}
-				.record {
-					display: flex;
-					align-items: center;
-					min-width: 100rpx;
-					max-width: 400rpx;
-				}
-				.record-img {
-					width: 42rpx;
-					height: 42rpx;
-					padding-right: 20rpx;
-				}
-			}
-		}
-		.left {
-			flex-direction: row;
-			.message {
-				background-color: #ffffff;
-				border-radius: 0rpx 20rpx 20rpx 20rpx;
-			}
-		}
-		.right {
-			flex-direction: row-reverse;
-			.message {
-				background-color: $uni-color-primary;
-				border-radius: 20rpx 0rpx 20rpx 20rpx;
-			}
-			.record {
-				flex-direction: row-reverse;
-			}
-			.record-img {
-				transform: rotate(180deg);
-			}
-			.map-name,
-			.map-address {
-				text-align: right;
-			}
-		}
-	}
-}
-.map {
-	background-color: #ffffff;
-	width: 464rpx;
-	border-radius: 20rpx;
-	image {
-		width: 464rpx;
-		height: 284rpx;
-	}
-	.map-name {
-		font-size: $uni-font-size-lg;
-		color: $uni-text-color;
-		line-height: 44rpx;
-		padding: 18rpx 24rpx 0 24rpx;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 1;
-		overflow: hidden;
-	}
-	.map-address {
-		font-size: $uni-font-size-sm;
-		color: $uni-text-color-disable;
-		line-height: 44rpx;
-		padding: 0 24rpx;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 1;
-		overflow: hidden;
-	}
-	.map-img {
-		width: 464rpx;
-		height: 284rpx;
-		overflow: hidden;
-		border-radius: 20rpx;
-	}
+	background-color: rgba(244, 244, 244, 1);
+	padding: 108rpx $uni-spacing-row-base 0;
+	// #ifdef APP-PLUS
+	padding-top: 158rpx;
+	// #endif
+	box-sizing: border-box;
 }
 </style>

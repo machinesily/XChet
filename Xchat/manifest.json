@@ -75,9 +75,9 @@
     },
     "h5" : {
         "title" : "Xchat",
-        "domain" : "static-dd86bc20-d1fc-45bc-b0b0-e4607821fe21.bspapp.com",
-				"devServer":{
-				"disableHostCheck":true
-				}
+        "domain" : "",
+        "devServer" : {
+            "disableHostCheck" : true
+        }
     }
 }

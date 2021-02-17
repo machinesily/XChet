@@ -4,7 +4,7 @@
 			<view class="chet-send">
 				<image src="../../static/images/chatRoom/record.png" @click="record" v-show="!isrecord" />
 				<image src="../../static/images/chatRoom/keyboard.png" @click="isrecord = !isrecord" v-show="isrecord" />
-				<textarea auto-height="true" class="chat-input btn" v-show="!isrecord" @input="inputs" v-model="msg" cursor-spacing="20" @focus="focus" @confirm="confirm()" confirm-type="send"/>
+				<textarea auto-height="true" class="chat-input btn" v-show="!isrecord" @input="inputs" v-model="msg" cursor-spacing="20"  @confirm="confirm()" confirm-type="send"/>
 				<view class="record btn" v-show="isrecord" @touchstart="touchstart" @touchend="touchend" @touchmove="touchmove">按住 说话</view>
 				<image src="../../static/images/chatRoom/emoji.png" @click="emoji" />
 				<image src="../../static/images/chatRoom/add.png" v-show="!isInput" @click="more" />
@@ -245,8 +245,9 @@ export default {
 			});
 		},
 		
-		focus(){
-			
+		cancel(){
+			this.isemoji = false
+			this.isMore = false
 		},
 
 		//获取输入框的高度

@@ -3,6 +3,7 @@
 		<view class="top-bar-left"><slot name="left"></slot></view>
 		<view class="top-bar-center"><slot name="center"></slot></view>
 		<view class="top-bar-right"><slot name="right"></slot></view>
+		<slot/>
 	</view>
 </template>
 
@@ -16,16 +17,16 @@ export default {
 
 <style lang="scss" scoped>
 .top-bar {
-	// background-color: #fff;
 	z-index: 99;
 	height: 88rpx;
 	position: fixed; //开启固定定位
 	left: 0; //居中
 	right: 0;
-	// border-bottom: 1px solid $uni-bg-color-grey; //底部分割线
 	display: flex; //弹性布局
 	text-align: center;
 	align-items: center;
+	// justify-content: space-between;
+	// background-color: rgba(244, 244, 244, 0.96);
 }
 .top-bar-center {
 	flex: 1;

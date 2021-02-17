@@ -1,45 +1,17 @@
 <template>
 	<view>
 		<view class="status_bar"></view>
-		<TopBar class="top-bar">
+		<top-bar class="top-bar">
 			<navigator :url="'../userHome/userHome?id=' + uid" slot="left" class="mine" hover-class="none"><image :src="imgurl" /></navigator>
 			<image src="../../static/images/index/search.png" slot="right" class="search" @click="search" />
-			<image src="../../static/images/index/add.png" slot="right" class="add" @click="test" />
-		</TopBar>
-		<view class="main">
-			<!-- 好友申请 -->
-			<view class="chat" v-if="requestData > 0" @tap="goRequest">
-				<view class="img">
-					<image src="../../static/images/index/apply.png" />
-					<span class="tip">{{ requestData }}</span>
-				</view>
-				<view class="chat-info">
-					<!-- nobr强制不换行 -->
-					<nobr class="name">好友申请</nobr>
-					<nobr class="message">茫茫人海，相遇便是缘分</nobr>
-					<view class="time">{{ changeDate(requestTime) }}</view>
-				</view>
-			</view>
-			<!-- 好友聊天 -->
-			<view class="chat" v-for="(item, index) of friends" :key="index" @tap="toChatRoom(item)">
-				<view class="img">
-					<image :src="item.imgurl" />
-					<span class="tip" v-show="item.tip > 0">{{ item.tip }}</span>
-				</view>
-				<view class="chat-info">
-					<!-- nobr强制不换行 -->
-					<nobr class="name">{{ item.name }}</nobr>
-					<nobr class="message">{{ item.message }}</nobr>
-					<view class="time">{{ changeDate(item.lastTime) }}</view>
-				</view>
-			</view>
-		</view>
+			<image src="../../static/images/index/add.png" slot="right" class="add" @click="toBulidGroup" />
+		</top-bar>
+		<view class="main"><index-friends :friends="friends" :requestData="requestData" :requestTime="requestTime" @toChatRoom="toChatRoom" /></view>
 	</view>
 </template>
 
 <script>
-import TopBar from '../../components/top-bar/TopBar.vue';
-import changeDate from '../../commons/js/changeDate.js';
+import indexFriends from '../../components/indexFriends/indexFriends.vue';
 export default {
 	data() {
 		return {
@@ -49,27 +21,25 @@ export default {
 			token: '',
 			myname: '',
 			friends: [],
+			group:[],
 			requestData: 0, //好友申请数
 			requestTime: '' //好友申请时间
 		};
 	},
 	components: {
-		TopBar
+		indexFriends
 	},
 	onLoad() {
 		this.getStorages();
-		this.getFriends(), this.friendRequest();
+		this.friendRequest();
+		this.getFriends();
 		this.join(this.uid);
-		this.receiveScoketMsg()
-	},
-	onPullDownRefresh() {
-		// console.log('111');
-		uni.redirectTo({
-			url: '../index/index'
-		});
-		setTimeout(function() {
-			uni.stopPullDownRefresh();
-		}, 500);
+		this.ScoketMsg();
+		this.ScoketGroupMsg()
+		uni.$on('refresh', msg => {
+			this.friends = []
+			this.getFriends()
+		})
 	},
 	methods: {
 		//获取缓存数据
@@ -98,8 +68,9 @@ export default {
 		},
 
 		//接收socket发来的数据
-		receiveScoketMsg() {
-			this.socket.on('msg', (msg, uid) => {
+		ScoketMsg() {
+			//tip用来判断是谁发的，0是别人发的
+			this.socket.on('msg', (msg, uid, tip) => {
 				let nowMsg = '';
 				if (msg.type == 0) {
 					nowMsg = msg.message;
@@ -110,200 +81,122 @@ export default {
 				} else if (msg.type == 3) {
 					nowMsg = '[位置]';
 				}
-				for (let [index,item] of this.friends.entries()){
-					if(item.id == uid){
-						item.lastTime = new Date()
-						item.message = nowMsg
-						item.tip++
+				for (let [index, item] of this.friends.entries()) {
+					if (item.id == uid) {
+						item.lastTime = new Date();
+						item.message = nowMsg;
+						if (tip == 0) {
+							item.tip++;
+						}
 						//删除原来的数组
-						this.friends.splice(index,1)
+						this.friends.splice(index, 1);
 						//新消息插入最顶部
-						this.friends.unshift(item)
+						this.friends.unshift(item);
 					}
 				}
 			});
 		},
-
-		//获取好友信息
+		
+		//接收socket发来的群数据
+		ScoketGroupMsg() {
+			this.socket.on('groupMsg', (msg, fromid, gid, fromName) => {
+				let nowMsg = '';
+				if (msg.type == 0) {
+					nowMsg = msg.message;
+				} else if (msg.type == 1) {
+					nowMsg = '[图片]';
+				} else if (msg.type == 2) {
+					nowMsg = '[音频]';
+				} else if (msg.type == 3) {
+					nowMsg = '[位置]';
+				}
+				for (let [index, item] of this.friends.entries()) {
+					if (item.id == gid) {
+						item.lastTime = new Date();
+						if(fromid != this.uid){
+							item.message = fromName + ':' + nowMsg;
+						} else {
+							item.message = nowMsg;
+						}
+						item.tip++;
+						//删除原来的数组
+						this.friends.splice(index, 1);
+						//新消息插入最顶部
+						this.friends.unshift(item);
+						break
+					}
+				}
+			});
+		},
+		
+		//获取好友聊天列表
 		getFriends() {
-			uni.request({
-				url: this.serverUrl + '/index/getfriend',
-				data: {
-					uid: this.uid,
-					token: this.token,
-					state: 0
-				},
-				method: 'POST',
-				success: data => {
-					console.log(data);
-					if (data.data.status == 200) {
-						//访问后端成功，登录成功
-						let res = data.data.result;
-						for (let i in res) {
-							//在信息数组中插入最后一条信息
-							this.getMsg(res, i);
-							//在信息数组中插入未读消息数
-							this.getUnRead(res, i);
-							//处理头像链接
-							res[i].imgurl = this.serverUrl + res[i].imgurl;
-							//处理alias
-							if (res[i].alias) {
-								res[i].name = res[i].alias;
-							}
-						}
-						this.friends = res;
-						// this.friends = this.paixu(this.friends,'lastTime',0)
-						// console.log(this.friends);
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
+			let url, data;
+			url = '/index/getmsg';
+			data = {
+				uid: this.uid,
+				token: this.token,
+				state: 0
+			};
+			this.request(url, data).then(res => {
+				for (let item of res) {
+					//处理头像和备注
+					item.imgurl = this.serverUrl + item.imgurl;
+					if (item.alias) {
+						item.name = item.alias;
 					}
 				}
-			});
-		},
-
-		//获取好友最后一条信息
-		getMsg(arr, i) {
-			uni.request({
-				url: this.serverUrl + '/index/getlastmsg',
-				data: {
+				this.friends = res;
+				this.paixu(this.friends, 'lastTime')
+				
+				//获取群列表
+				url = '/index/getgroupmsg';
+				data = {
 					uid: this.uid,
-					fid: arr[i].id,
 					token: this.token
-				},
-				method: 'POST',
-				success: data => {
-					console.log(data);
-					if (data.data.status == 200) {
-						let res = data.data.result;
-						if (res.type == 0) {
-							//文字
-							res.message = res.message;
-						} else if (res.type == 1) {
-							res.message = '[图片]';
-						} else if (res.type == 2) {
-							res.message = '[音频]';
-						} else if (res.type == 3) {
-							res.message = '[位置]';
-						}
-						arr[i].message = res.message;
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
-					}
+				};
+				return this.request(url, data)
+			}).then(res => {
+				// console.log(res);
+				for (let item of res) {
+					item.imgurl = this.serverUrl + item.imgurl
+					this.socket.emit('group',item.id)
 				}
-			});
-		},
-
-		//获取未读消息数
-		getUnRead(arr, i) {
-			uni.request({
-				url: this.serverUrl + '/index/unreadmsg',
-				data: {
-					uid: this.uid,
-					fid: arr[i].id,
-					token: this.token
-				},
-				method: 'POST',
-				success: data => {
-					// console.log(data);
-					if (data.data.status == 200) {
-						let res = data.data.result;
-						let e = arr[i];
-						e.tip = res;
-						arr.splice(i, 1, e);
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
-					}
-				}
-			});
+				this.group = res
+				this.friends = this.friends.concat(this.group)
+				this.paixu(this.friends, 'lastTime')
+			})
 		},
 
 		//获取申请好友信息
 		friendRequest() {
-			uni.request({
-				url: this.serverUrl + '/index/getfriend',
-				data: {
-					uid: this.uid,
-					token: this.token,
-					state: 1
-				},
-				method: 'POST',
-				success: data => {
-					if (data.data.status == 200) {
-						//访问后端成功，登录成功
-						let res = data.data.result;
-						// console.log('好友申请信息为：'+res);
-						if (res.length > 0) {
-							this.requestData = res.length;
-							this.requestTime = res[0].lastTime;
-						}
-					} else if (data.data.status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url: '../login/login?name=' + this.myname
-						});
-					} else if (data.data.status == 500) {
-						//服务器错误
-						uni.showToast({
-							title: '服务器出错了',
-							icon: 'none',
-							duration: 2000
-						});
-					}
+			const url = '/index/getfriend';
+			const data = {
+				uid: this.uid,
+				token: this.token,
+				state: 1
+			};
+			this.request(url, data).then(res => {
+				if (res.length > 0) {
+					this.requestData = res.length;
+					this.requestTime = res[0].lastTime;
 				}
 			});
 		},
 
-		//排序
-		paixu(arr, obj, tip) {
-			if (tip == 0) {
-				for (let i = 1; i < arr.length; i++) {
-					for (let j = i; j > 0; j--) {
-						if (arr[j][obj] > arr[j - 1][obj]) {
-							let s = arr[j];
-							arr[j] = arr[j - 1];
-							arr[j - 1] = s;
-						}
+
+		//群和好友的排序
+		paixu(arr, obj) {
+			for (let i = 1; i < arr.length; i++) {
+				for (let j = i; j > 0; j--) {
+					if (arr[j][obj] > arr[j - 1][obj]) {
+						let s = arr[j];
+						arr[j] = arr[j - 1];
+						arr[j - 1] = s;
 					}
 				}
-				return arr;
 			}
-		},
-
-		//跳转到好友申请界面
-		goRequest() {
-			uni.navigateTo({
-				url: '../firendRequest/firendRequest'
-			});
+			return arr;
 		},
 
 		//跳转到搜索界面
@@ -313,20 +206,38 @@ export default {
 			});
 		},
 
-		//时间格式处理
-		changeDate: oldData => {
-			return changeDate.changeDate(oldData);
+		//跳转到建群界面
+		toBulidGroup() {
+			uni.navigateTo({
+				url: '../buildGroup/buildGroup'
+			});
 		},
 
 		//跳转到聊天页面
-		toChatRoom(data) {
+		toChatRoom(e) {
+			var url = ''
+			if(e.type == 0){
+				url = '/index/updatemsg';
+			} else {
+				url = '/index/updategroupmsg'
+			}
+			const fid = e.id;
+			const data = {
+				uid: this.uid,
+				fid: fid,
+				token: this.token
+			};
+			if (e.tip > 0) {
+				this.request(url, data).then(res => {
+					for (let item of this.friends) {
+						if (item.id == fid) {
+							this.$set(item, 'tip', 0);
+						}
+					}
+				});
+			}
 			uni.navigateTo({
-				url: '../chatRoom/chatRoom?id=' + data.id + '&name=' + data.name + '&type=' + data.type + '&imgurl=' + data.imgurl
-			});
-		},
-		test() {
-			uni.navigateTo({
-				url: '../chatRoom/chatRoom'
+				url: '../chatRoom/chatRoom?id=' + fid + '&name=' + e.name + '&type=' + e.type + '&imgurl=' + e.imgurl
 			});
 		}
 	}
@@ -342,7 +253,7 @@ export default {
 
 .top-bar {
 	background-color: rgba(244, 244, 244, 0.96);
-	border-bottom: 1px solid $uni-border-color; //底部分割线
+	box-shadow: 0 1px $uni-border-color;
 	.mine {
 		width: 68rpx;
 		height: 68rpx;
@@ -363,76 +274,5 @@ export default {
 .main {
 	padding-top: 88rpx;
 	width: 100%;
-	.chat {
-		display: flex;
-		flex-direction: row;
-		padding: 0 $uni-spacing-row-base;
-		&:active {
-			background-color: $uni-bg-color-hover;
-		}
-		.img {
-			flex: none;
-			position: relative;
-			display: flex;
-			align-items: center;
-			image {
-				width: 96rpx;
-				height: 96rpx;
-				border-radius: $uni-border-radius-base;
-				// background-color: rgba(255,228,49,1);
-			}
-		}
-		.tip {
-			min-width: 20rpx;
-			height: 36rpx;
-			text-align: center;
-			padding: 0 6rpx;
-			font-size: $uni-font-size-sm;
-			color: $uni-text-color-inverse;
-			border-radius: 18rpx;
-			background: #ff5d5b;
-			position: absolute;
-			left: 66rpx;
-			top: 20rpx;
-		}
-		.chat-info {
-			display: flex;
-			flex-direction: column;
-			padding: $uni-spacing-col-base 0;
-			border-bottom: 1px solid $uni-bg-color-grey;
-			position: relative;
-			width: 590rpx;
-			.name {
-				flex: auto;
-				align-items: center;
-				width: 480rpx;
-				color: $uni-text-color;
-				height: 50rpx;
-				overflow: hidden;
-				text-overflow: ellipsis;
-				padding-left: $uni-spacing-row-base;
-			}
-			.message {
-				flex: auto;
-				align-items: center;
-				// width: 100%;
-				height: 40rpx;
-				font-size: 14px;
-				color: rgba(39, 40, 50, 0.6);
-				height: 38rpx;
-				width: 496rpx;
-				overflow: hidden;
-				text-overflow: ellipsis;
-				padding-left: $uni-spacing-row-base;
-			}
-			.time {
-				position: absolute;
-				top: 20rpx;
-				right: 0rpx;
-				font-size: 12px;
-				color: rgba(39, 40, 50, 0.4);
-			}
-		}
-	}
 }
 </style>

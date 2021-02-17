@@ -1,82 +1,99 @@
 <template>
-	<view>
-		<button type="default" @tap="upload()">测试</button>
-		<image v-for="(item,index) in img" :key="index" :src="item"></image>
-		<button type="default" @tap="test">测试</button>
-	</view>
+	<view class="">	<button type="default" @tap="Atest()"></button></view>
 </template>
 
 <script>
-	import changeDate from '../commons/js/changeDate.js'
 export default {
+	onLoad() {
+		this.getStorages();
+		this.getFriendsA();
+		this.Atest()
+	},
 	data() {
 		return {
-			id:'fvujyhgukjygkuiy',
-			img:[],
-			path:''
+			uid: '',
+			token: '',
+			friends: []
 		};
 	},
-	
+
 	methods: {
-		upload() {
-			let url = changeDate.fileName(new Date())
-			uni.chooseImage({
-				count: 9, //默认9
-				sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
-				sourceType: ['album','camera'], //从相册和相机选择
-				success: chooseImageRes => {
-					const tempFilePaths = chooseImageRes.tempFilePaths;
-					//遍历同时上传多张图片
-					for(let i in tempFilePaths){
-						const uploadTask = uni.uploadFile({
-							url: 'http://localhost:3000/files/upload', 
-							filePath: tempFilePaths[i],
-							name: 'file',
-							formData: {
-								url: url,
-								name:new Date().getTime() + this.id + i
-							},
-							success: uploadFileRes => {
-								let path = this.serverUrl+ uploadFileRes.data
-								this.img.push(path)
-								console.log(uploadFileRes.data);
-							}
-						});
-						
-						uploadTask.onProgressUpdate(res => {
-							console.log('上传进度' + res.progress);
-							console.log('已经上传的数据长度' + res.totalBytesSent);
-							console.log('预期需要上传的数据总长度' + res.totalBytesExpectedToSend);
-						
-							// 测试条件，取消上传任务。
-							// if (res.progress > 50) {
-							// 	uploadTask.abort();
-							// }
-						});
-					}
-					
+		//获取缓存数据
+		getStorages() {
+			try {
+				const value = uni.getStorageSync('user');
+				if (value) {
+					this.uid = value.id;
+					// this.imgurl = this.serverUrl + value.imgurl;
+					this.token = value.token;
+					// this.myname = value.name;
+				} else {
+					//如果没有用户缓存，跳转到登录页面
+					uni.redirectTo({
+						url: '../login/login'
+					});
 				}
-			});
+			} catch (e) {
+				// error
+			}
 		},
 		
-		
-		test(){
-			uni.request({
-				url:'https://restapi.amap.com/v3/staticmap',
-				method:'GET',
-				data:{
-					// https://restapi.amap.com/v3/staticmap?location=116.481485,39.990464&zoom=10&size=750*300&markers=mid,,A:116.481485,39.990464&key=af0f6cdaa2398149472eb89bcc688c60,
-					key:'af0f6cdaa2398149472eb89bcc688c60',
-					location:'116.481485,39.990464',
-					// zoom:10,
-					// size:750*30,
-					// markers:'mid',
-					// A:'116.481485,39.990464'
-				},
-				success: (data) => {
-					console.log(data);
-				}
+		Atest(){
+			uni.$emit('refresh',{msg:'页面更新'})
+		},
+
+		getFriendsA() {
+			//发送网络请求获取好友信息
+			const url = '/chat/groupMsg';
+			const data = {
+				gid:'60227d998ad4ca1a484cc6a8',
+				nowPage: 0,
+				pageSize: 13,
+				token: this.token
+			};
+			this.request(url, data).then(res => {
+				console.log(res);
 			})
+			
+			
+			
+				// .then(friend => {
+				// 	const url = '/index/unreadmsg';
+				// 	for (let item of friend) {
+				// 		let data = {
+				// 			uid: this.uid,
+				// 			fid: item.id,
+				// 			token: this.token
+				// 		};
+				// 		this.request(url, data).then(res => {
+				// 			this.$set(item, 'tip', res);
+				// 		});
+				// 	}
+				// 	this.friends = friend;
+				// 	console.log(this.friends);
+				// });
+		},
+
+		async test() {
+			// console.log('111');
+			const url = '/index/getfriend';
+			const data = {
+				uid: this.uid,
+				token: this.token,
+				state: 0
+			};
+			console.log(this.request(url, data));
+			const profile = await this.request(url, data);
+			for (let item of profile) {
+				const url1 = '/index/getlastmsg';
+				const data1 = {
+					uid: this.uid,
+					fid: item.id,
+					token: this.token
+				};
+				const message = await this.request(url1, data1);
+				console.log(message);
+			}
 		}
 	}
 };

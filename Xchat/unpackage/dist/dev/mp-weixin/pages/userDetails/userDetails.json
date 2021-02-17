@@ -1,8 +1,0 @@
-{
-  "navigationStyle": "custom",
-  "navigationBarTextStyle": "black",
-  "usingComponents": {
-    "top-bar": "/components/top-bar/TopBar",
-    "image-cropper": "/components/ling-imgcropper/ling-imgcropper"
-  }
-}

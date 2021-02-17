@@ -1,10 +1,10 @@
 <template>
 	<view class="login">
 		<view class="status_bar"></view>
-		<TopBar><view class="signUp" slot="right" @click="toSingUp">注册</view></TopBar>
+		<top-bar><view class="signUp" slot="right" @click="toSingUp">注册</view></top-bar>
 		<view class="main">
 			<view class="login">登录</view>
-			<view class="welcome">你好，欢迎来到XChet</view>
+			<view class="welcome">你好，欢迎来到Xchat</view>
 			<view class="user-wrapper">
 				<input type="text" placeholder="请输入用户名/邮箱" placeholder-style="#aaa" class="user" v-model="user" />
 			</view>
@@ -18,11 +18,7 @@
 </template>
 
 <script>
-import TopBar from '../../components/top-bar/TopBar.vue';
 export default {
-	components: {
-		TopBar
-	},
 	data() {
 		return {
 			user: '',
@@ -46,6 +42,7 @@ export default {
 				duration:2000
 			})
 		}
+		this.getStorages()
 	},
 	methods: {
 		//跳转到注册页面
@@ -54,42 +51,41 @@ export default {
 				url: '../signUp/signUp'
 			});
 		},
+		//获取缓存数据,有缓存直接登陆
+		getStorages() {
+			try {
+				const value = uni.getStorageSync('user');
+				if (value) {
+					this.uid = value.id;
+					this.imgurl = this.serverUrl + value.imgurl;
+					this.token = value.token;
+					this.myname = value.name;
+					uni.redirectTo({
+						url:'../index/index'
+					})
+				} 
+			} catch (e) {
+				
+			}
+		},
 		//提交数据到后台
 		login() {
-			uni.request({
-				url: this.serverUrl+'/login/match',
-				data: {
-					user:this.user,
-					psw:this.password
-				},
-				method: 'POST',
-				success: data => {
-					console.log(data);
-					if(data.data.status == 200){
-						//访问后端成功，登录成功
-						let res = data.data.result
-						//同步本地存储用户信息
-						try {
-						    uni.setStorageSync('user', {'id':res.id,'name':res.name,'imgurl':res.imgurl,'token':res.token});
-						} catch (e) {
-						    console.log('数据缓存错误');
-						}
-						uni.redirectTo({
-							url:'../index/index'
-						})
-					} else if (data.data.status == 400) {
-						//用户匹配失败,显示错误
-						this.match = true
-					} else if(data.data.status == 500){
-						//服务器错误
-						uni.showToast({
-							title:'服务器出错了',
-							icon:'none',
-							duration:2000
-						})
-					}
+			const url = '/login/match'
+			const data = {
+				user:this.user,
+				psw:this.password
+			}
+			this.request(url, data).then(res => {
+				//同步本地存储用户信息
+				try {
+				    uni.setStorageSync('user', {'id':res.id,'name':res.name,'imgurl':res.imgurl,'token':res.token});
+				} catch (e) {
+				    console.log('数据缓存错误');
 				}
-			});
+				uni.redirectTo({
+					url:'../index/index'
+				})
+			})
 		},
 	}
 };

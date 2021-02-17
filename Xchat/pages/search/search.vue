@@ -1,13 +1,13 @@
 <template>
 	<view>
 		<view class="status_bar"></view>
-		<TopBar class="topBar">
+		<top-bar class="topBar">
 			<view class="search-wrapper" slot="center">
 				<input type="serach" placeholder="搜索用户/群" class="search" placeholder-style="color#aaa;" @input="Value" v-model="searchValue"/>
 				<image src="../../static/images/search/search.png" class="search-img" />
 			</view>
 			<view class="cancel" slot="right" @click="back">取消</view>
-		</TopBar>
+		</top-bar>
 		<view class="main">
 			<view class="user">
 				<view class="title" v-show="this.userarr.length > 0">用户</view>
@@ -17,7 +17,7 @@
 						<view class="name" v-html="item.name"></view>
 						<view class="email" v-html="item.mail"></view>
 					</view>
-					<view class="button send" v-if="item.tip == 1">发消息</view>
+					<view class="button send" v-if="item.tip == 1" @tap="toChatRoom(item)">发消息</view>
 					<view class="button add" v-if="item.tip == 0" @tap="addFriendBtn(item._id)">加好友</view>
 				</view>
 			</view>
@@ -38,13 +38,9 @@
 </template>
 
 <script>
-import TopBar from '../../components/top-bar/TopBar.vue';
 import datas from '../../commons/js/datas.js';
 import {debounce} from '../../commons/js/debounce.js'  //引入防抖函数
 export default {
-	components: {
-		TopBar
-	},
 	onLoad() {
 		this.getStorages()
 	},
@@ -87,6 +83,22 @@ export default {
 			}
 		},
 		
+		//跳转到聊天室
+		toChatRoom(e) {
+			let fid = e._id
+			//未读消息数清零
+			const url = '/index/updatemsg'
+			const data = {
+				uid: this.uid,
+				fid: fid,
+				token: this.token,
+			}
+			this.request(url, data)
+			uni.navigateTo({
+				url: '../chatRoom/chatRoom?id=' + fid + '&name=' + e.name + '&type=' + e.type + '&imgurl=' + e.imgurl
+			});
+		},
+		
 		//获取关键词
 		Value:debounce(function(e){
 			  this.userarr = [];
@@ -97,44 +109,24 @@ export default {
 
 		//寻找关键词匹配的好友
 		searchUser(e) {
-			uni.request({
-				url:this.serverUrl+'/search/user',
-				data:{
-					data:e,
-					token:this.token
-				},
-				method:'POST',
-				success: data => {
-					let status = data.data.status
-					if(status == 200) {
-						let res = data.data.result
-						let exp = eval('/' + e + '/g'); //全局匹配
-						for(let item of res){
-							//图片路径处理
-							item.imgurl = this.serverUrl + item.imgurl
-							//判断是否是好友
-							this.isFriend(item);
-							//搜索词高亮
-							setTimeout(()=>{
-								item.name = item.name.replace(exp, "<span style='color:#4AAAFF;'>" + e + '</span>');
-								item.mail = item.mail.replace(exp, "<span style='color:#4AAAFF;'>" + e + '</span>');
-							},100)
-							this.userarr.push(item);
-						}
-						console.log(this.userarr);
-					} else if (status == 500) {
-						uni.showToast({
-							title:'服务器出错啦！',
-							icon:'none',
-							duration:2000
-						})
-					} else if (status == 300) {
-						//token过期，跳转到登录页面
-						uni.redirectTo({
-							url:'../login/login?name='+this.myname
-						})
-					}
-					
+			const url = '/search/user'
+			const data = {
+				data:e,
+				token:this.token
+			}
+			this.request(url, data).then(res => {
+				let exp = eval('/' + e + '/g'); //全局匹配
+				for(let item of res){
+					//图片路径处理
+					item.imgurl = this.serverUrl + item.imgurl
+					//判断是否是好友
+					this.isFriend(item);
+					//搜索词高亮
+					setTimeout(()=>{
+						item.name = item.name.replace(exp, "<span style='color:#4AAAFF;'>" + e + '</span>');
+						item.mail = item.mail.replace(exp, "<span style='color:#4AAAFF;'>" + e + '</span>');
+					},100)
+					this.userarr.push(item);
 				}
 			})
 		},
@@ -144,38 +136,17 @@ export default {
 			//如果uid和传过来的对象id相同则不用判断
 			if(this.uid !== e._id){
 				e.tip = 0
-				console.log(e);
-				uni.request({
-					url:this.serverUrl+'/search/isfriend',
-					data:{
-						uid:this.uid,
-						fid:e._id,
-						token:this.token
-					},
-					method:'POST',
-					success: data => {
-						// console.log(data);
-						let status = data.data.status
-						//如果返回的状态码是200代表是好友
-						if(status == 200) {
-							e.tip = 1
-							if (data.data.result.alias){
-								//如果有备注则把名字改成备注
-								e.name = data.data.result.alias
-							}
-						} else if (status == 500) {
-							uni.showToast({
-								title:'服务器出错啦！',
-								icon:'none',
-								duration:2000
-							})
-						} else if (status == 300) {
-							//token过期，跳转到登录页面
-							uni.redirectTo({
-								url:'../login/login?name='+this.myname
-							})
-						}
-						
+				const url = '/search/isfriend'
+				const data = {
+					uid:this.uid,
+					fid:e._id,
+					token:this.token
+				}
+				this.request(url, data).then(res => {
+					e.tip = 1
+					if (res.alias){
+						//如果有备注则把名字改成备注
+						e.name = res.alias
 					}
 				})
 			}
@@ -219,39 +190,20 @@ export default {
 			
 			//添加好友页面确认
 			addFriendConfirm(){
-					uni.request({
-						url:this.serverUrl+'/friend/apply',
-						data:{
-							uid:this.uid,
-							fid:this.fid,
-							msg:this.message,
-							token:this.token,
-						},
-						method:'POST',
-						success: data => {
-							if(data.data.status == 200){
-								//访问后端成功，登录成功
-								this.addFriendPopUp()
-								uni.showToast({
-									title:'好友请求发送成功',
-									icon:'none',
-									duration:2000
-								})
-							} else if (data.data.status == 300) {
-								//token过期，跳转到登录页面
-								uni.redirectTo({
-									url:'../login/login?name='+this.myname
-								})
-							} else if(data.data.status == 500){
-								//服务器错误
-								this.addFriendPopUp()
-								uni.showToast({
-									title:'服务器出错了',
-									icon:'none',
-									duration:2000
-								})
-							}
-						}
+					const url = '/friend/apply'
+					const data = {
+						uid:this.uid,
+						fid:this.fid,
+						msg:this.message,
+						token:this.token,
+					}
+					this.request(url, data).then(res => {
+						this.addFriendPopUp()
+						uni.showToast({
+							title:'好友请求发送成功',
+							icon:'none',
+							duration:2000
+						})
 					})
 			},
 		
@@ -320,18 +272,23 @@ export default {
 		.names {
 			width: 450rpx;
 			padding-left: $uni-spacing-row-base;
-			height: 80rpx;
 			font-size: $uni-font-size-base;
 			float: left;
 			.name {
+				height: 40rpx;
+				line-height: 40rpx;
 				font-size: 36rpx;
 				overflow: hidden;
 				text-overflow: ellipsis;
+				white-space: nowrap;
 			}
 			.mail {
+				height: 40rpx;
+				line-height: 40rpx;
 				font-size: $uni-font-size-sm;
 				overflow: hidden;
 				text-overflow: ellipsis;
+				white-space: nowrap;
 			}
 		}
 		.button {
