@@ -736,6 +736,21 @@ function unreadGroupMsg(uid, gid) {
   })
 }
 
+//群屏蔽状态获取
+function GroupShield(uid, gid) {
+  return new Promise((resolve, reject) => {
+    //条件
+    let wherestr = {'userID':uid,'groupID':gid}
+    GroupUser.findOne(wherestr, {shield:1}, (err, result) => {
+      if(err){
+        reject({status: 500})
+      }else{
+        resolve(result.shield)
+      }
+    })
+  })
+}
+
 async function indexGetGroupMsg(data,res) {
   let group, msg, tip;
   [err, group] = await getGroups(data).then(data => [null, data]).catch(err => [err, null]);
@@ -759,6 +774,8 @@ async function indexGetGroupMsg(data,res) {
     item.message = msg.message;
     [err, tip] = await unreadGroupMsg(item.userID, item.id).then(data => [null, data]).catch(err => [err, null])
     item.tip =tip;
+    [err, shield] = await GroupShield(item.userID, item.id).then(data => [null, data]).catch(err => [err, null])
+    item.shield = shield
   }
   if(err){
     res.send(err)
@@ -868,7 +885,6 @@ exports.createGroup = (data, res) => {
           lastTime:new Date(),  //最后通讯时间
           shield:0              //是否屏蔽群消息（0不屏蔽，1屏蔽）
         }
-        // this.insertGroupUser(fdata)
         let groupUser = GroupUser(fdata)
         groupUser.save((err,res) => {
           if (err) {
@@ -897,14 +913,14 @@ exports.createGroup = (data, res) => {
 }
 
 //添加群成员信息到数据库
-exports.insertGroupUser = (data) => {
+exports.insertGroupUser = (data, res) => {
   var groupUser = GroupUser(data)
 
-  groupUser.save((err,res) => {
+  groupUser.save((err,result) => {
     if (err) {
       res.send({status:500})
     } else {
-      console.log('添加群成员成功');
+      res.send({status:200})
     }
   })
 }
@@ -1042,6 +1058,108 @@ exports.exitGroup = (data,res)=>{
   //查找项
   let wherestr = {'groupID':data.gid, 'userID':data.uid}
   GroupUser.deleteOne(wherestr, (err,result)=>{
+    if (err) {
+      res.send({status: 500})
+    } else {
+      res.send({status: 200})
+    }
+  })
+}
+
+// 邀请人进群
+exports.inviteUser = (data,res)=>{
+  let user = {
+    groupID:gid,
+    userID:uid,
+    message:msg.message,
+    type:msg.type,
+    time:new Date()
+  }
+  let message = new GroupMessage(user)
+  message.save(function (err, result) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(result);
+      console.log('插入信息成功');
+    }
+  })
+}
+
+//修改群名字
+exports.update = (data, res) => {
+  if(data.type == 'name'){
+    //修改群名,搜索条件
+    let wherestr = {'_id':data.gid}
+    //修改内容
+    let updatestr = {'name':data.updata}
+    Group.updateOne(wherestr,updatestr,(err,result) => {
+      if(err){
+        res.send({status:500})
+      }else{
+       res.send({status:200})
+      }
+    })
+  }
+  if (data.type == 'img'){
+    //修改群头像,搜索条件
+    let wherestr = {'_id':data.gid}
+    //修改内容
+    let updatestr = {'imgurl':data.updata}
+    Group.updateOne(wherestr,updatestr,(err,result) => {
+      if(err){
+        res.send({status:500})
+      }else{
+       res.send({status:200})
+      }
+    })
+  }
+  if (data.type == 'notice'){
+    //修改群公告,搜索条件
+    let wherestr = {'_id':data.gid}
+    //修改内容
+    let updatestr = {'notice':data.updata}
+    Group.updateOne(wherestr,updatestr,(err,result) => {
+      if(err){
+        res.send({status:500})
+      }else{
+       res.send({status:200})
+      }
+    })
+  }
+  if (data.type == 'aliasName'){
+    //修改群内名,搜索条件
+    let wherestr = {'groupID':data.gid,'userID': data.uid}
+    //修改内容
+    let updatestr = {'aliasName':data.updata}
+    GroupUser.updateOne(wherestr,updatestr,(err,result) => {
+      if(err){
+        res.send({status:500})
+      }else{
+       res.send({status:200})
+      }
+    })
+  }
+  if (data.type == 'shield'){
+    //修改群屏蔽,搜索条件
+    let wherestr = {'groupID':data.gid,'userID': data.uid}
+    //修改内容
+    let updatestr = {'shield':data.updata}
+    GroupUser.updateOne(wherestr,updatestr,(err,result) => {
+      if(err){
+        res.send({status:500})
+      }else{
+       res.send({status:200})
+       console.log(result);
+      }
+    })
+  }
+}
+
+// 删除群员
+exports.deleteGroupUser = (data,res)=>{
+  let wherestr = {'groupID':data.gid,'userID': data.uid}
+  GroupUser.deleteOne(wherestr,(err,result)=>{
     if (err) {
       res.send({status: 500})
     } else {

@@ -9,8 +9,15 @@
 			</top-bar>
 			<view class="main">
 				<view class="column" v-for="(item, index) in friends" :key="index">
+					<view class="row">
+						<checkbox checked="true" disabled="true" :value="item.id" class="check" color="rgba(209,209,209,1)"/>
+						<image :src="item.imgurl" />
+						<view class="name">{{ item.name }}</view>
+					</view>
+				</view>
+				<view class="column" v-for="(item, index) in newFriends" :key="'new'+index">
 					<view class="row" @tap="checkboxChange(item.id)">
-						<checkbox :checked="item.checked" :value="item.id" class="check" :color="checkColor(item.beforCheck)"/>
+						<checkbox :checked="item.checked" :value="item.id" class="check" color="rgba(255,228,49,1)"/>
 						<image :src="item.imgurl" />
 						<view class="name">{{ item.name }}</view>
 					</view>
@@ -27,27 +34,26 @@ export default {
 			type: Array
 		}
 	},
-	watch: {
-		friends(newVal) {
-			this.friends = newVal;
-			this.checked = newVal
+	watch:{
+		friends(newVal, oldVal){
+			// this.newFriends = newVal.filter(n => !n.checked)
+			// console.log(this.newFriends);
+			for (let i in newVal) {
+				if(!newVal[i].checked){
+					this.newFriends.push(newVal[i])
+					newVal.splice(i,1)
+					--i;
+				}
+			}
 		}
 	},
 	data() {
 		return {
 			top: 1000,
-			checked:this.friends
+			newFriends:[]
 		};
 	},
 	methods: {
-		//checkBox颜色处理
-		checkColor(beforCheck){
-			if(beforCheck){
-				return 'rgba(209,209,209,1)'
-			} else {
-				return 'rgba(255,228,49,1)'
-			}
-		},
 		
 		//打开弹窗
 		open() {
@@ -62,12 +68,14 @@ export default {
 		},
 
 		confirm() {
-			console.log(this.checked);
+			let arr = this.newFriends.filter(n => n.checked)
+			arr.length>0 ? this.$emit('addMember', arr) : 0 ;
+			this.cancel()
 		},
 		
 		checkboxChange(id) {
-			for (let item of this.checked) {
-				if(item.id == id && !item.beforCheck){
+			for (let item of this.newFriends) {
+				if(item.id == id){
 					item.checked = !item.checked
 				}
 			}

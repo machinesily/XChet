@@ -27,6 +27,10 @@ export default {
 		needPassword: {
 			type: Boolean,
 			default: false
+		},
+		kong: {
+			type: Boolean,
+			default: true
 		}
 	},
 	watch: {
@@ -72,10 +76,10 @@ export default {
 					duration: 2000
 				});
 			} 
-			if (this.data != this.oldData & this.data != '') {
+			if (this.data != this.oldData) {
 				this.$emit('confirm', this.data, this.password);
 			} 
-			if (!this.data){
+			if (!this.data && this.kong){
 				uni.showToast({
 					title: `${this.title}不能为空！`,
 					icon: 'none',

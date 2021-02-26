@@ -167,7 +167,7 @@ export default {
 		.name {
 			flex: auto;
 			align-items: center;
-			width: 480rpx;
+			width: 470rpx;
 			color: $uni-text-color;
 			height: 50rpx;
 			overflow: hidden;

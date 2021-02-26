@@ -4,7 +4,7 @@
 		<top-bar :class="{ status_bar_bg: statusBar }" class="top-bar">
 			<image src="../../static/images/common/back.png" mode="" class="back" slot="left" @click="back"></image>
 		</top-bar>
-		<image :src="group.bg" mode="aspectFill" class="bg" />
+		<image :src="cropFilePath" mode="aspectFill" class="bg" />
 		<view class="main">
 			<view class="title">
 				<view class="group-name">{{ group.name }}</view>
@@ -18,7 +18,7 @@
 				<view class="member-wrapper">
 					<view class="member-list" v-for="(item, key) in members" :key="key">
 						<view class="img-wrapper">
-							<image src="../../static/images/groupHome/delete.png" class="delete" v-show="manage" />
+							<image src="../../static/images/groupHome/delete.png" class="delete" v-show="manage" @tap="deleteMember(item.id)"/>
 							<image :src="item.imgurl" class="member-img" />
 						</view>
 						<view class="member-name">{{ item.name }}</view>
@@ -30,7 +30,7 @@
 				</view>
 			</view>
 			<view class="column">
-				<info @infoTap="modify('群名称', 'groupName', group.groupName)">
+				<info @infoTap="modify('群名称', 'groupName', group.name)">
 					<view slot="title">群名称</view>
 					<view slot="content">{{ group.name }}</view>
 				</info>
@@ -57,8 +57,8 @@
 			</view>
 			<view class="exit-wrapper"><view class="exit" @tap="exit">退出群聊</view></view>
 		</view>
-		<popup ref="popup" @confirm="modifyConfirm" :title="title" :oldData="oldData" />
-		<add-member :friends="friends" ref="addMember"/>
+		<popup ref="popup" @confirm="modifyConfirm" :title="title" :oldData="oldData" :kong="kong"/>
+		<add-member :friends="friends" @addMember="addMemberConfirm" ref="addMember" />
 	</view>
 </template>
 
@@ -67,7 +67,7 @@ import datas from '../../commons/js/datas.js';
 import ImageCropper from '../../components/ling-imgcropper/ling-imgcropper.vue';
 import popup from '../../components/popup/popup.vue';
 import info from '../../components/info/info.vue';
-import addMember from '../../components/group-add-member/group-add-member.vue'
+import addMember from '../../components/group-add-member/group-add-member.vue';
 export default {
 	components: {
 		ImageCropper,
@@ -114,16 +114,17 @@ export default {
 			statusBar: false,
 			cropFilePath: '',
 			tempFilePath: '',
-			friends:[],//邀请好友的数组
+			friends: [], //邀请好友的数组
 			title: '', //修改弹窗的标题
 			oldData: '', //修改弹窗原始内容
 			data: '', //修改弹窗修改内容
-			type: '' //修改弹窗类型
+			type: '' ,//修改弹窗类型
+			kong:true
 		};
 	},
 	methods: {
 		back() {
-			uni.navigateBack({});
+			uni.navigateBack();
 		},
 
 		getMsg() {
@@ -135,8 +136,8 @@ export default {
 			};
 			this.request(url, data).then(res => {
 				console.log(res);
-				res.bg = this.serverUrl + res.imgurl; //背景图片
-				this.cropFilePath = res.bg;
+				res.imgurl = this.serverUrl + res.imgurl;
+				this.cropFilePath = res.imgurl;
 				this.group = res;
 			});
 		},
@@ -154,10 +155,10 @@ export default {
 				}
 			});
 		},
-		
+
 		//成员管理
 		memberManage() {
-			this.manage = !this.manage;
+			if(this.uid == this.group.userID) this.manage = !this.manage;
 		},
 
 		//获取主页面的高度
@@ -180,76 +181,150 @@ export default {
 				this.statusBar = false;
 			}
 		},
-		
+
 		//邀请好友
-		addMember(){
-			this.friends = []
-			const url = '/index/getmsg'
+		addMember() {
+			this.friends = [];
+			const url = '/index/getmsg';
 			const data = {
 				uid: this.uid,
 				token: this.token,
 				state: 0
-			}
+			};
 			this.request(url, data).then(res => {
 				for (let item of res) {
-					let friend = {}
-					friend.imgurl = this.serverUrl + item.imgurl
-					friend.name = item.name
-					friend.id = item.id
-					friend.checked = false
-					friend.beforCheck = false
+					let friend = {};
+					friend.imgurl = this.serverUrl + item.imgurl;
+					friend.name = item.name;
+					friend.id = item.id;
+					friend.checked = false;
 					for (let items of this.members) {
-						if(item.id == items.id){
-							friend.checked = true
-							friend.beforCheck = true
+						if (item.id == items.id) {
+							friend.checked = true;
 						}
 					}
-					this.friends.push(friend)
+					this.friends.push(friend);
 				}
 				console.log(this.friends);
-				this.$refs.addMember.open()
-			})
+				this.$refs.addMember.open();
+			});
+		},
+
+		//添加好友发送网络请求
+		addMemberConfirm(data) {
+			console.log(data);
+			for (let item of data) {
+				this.members.push(item)
+				let fdata = {
+					groupID: this.gid, //群id
+					userID: item.id, //用户id
+					time: new Date(), //加入时间
+					lastTime: new Date(), //最后通讯时间
+					shield: 0 //是否屏蔽群消息（0不屏蔽，1屏蔽）
+				};
+				const url = '/grouphome/addmember';
+				this.request(url, fdata).then(res => {
+					this.socket.emit('groupRefresh', item.id);
+				});
+			}
 		},
 
 		//修改页面的弹出
-		modify(title, type, data, needPassword) {
+		modify(title, type, data) {
 			this.title = title;
 			this.type = type;
 			this.data = data;
 			this.oldData = data;
-			this.needPassword = needPassword;
-			this.$refs.popup.open(); //弹出修改页面
+			if(this.uid == this.group.userID || this.type == 'aliasName'){
+				this.$refs.popup.open(); //弹出修改页面
+			}
+			this.type == 'aliasName' ? this.kong = false : this.kong = true
 		},
 
 		//修改页面的确认
-		modifyConfirm(data, password) {
-			this.group[this.type] = data;
-			// //数据修改，更新数据库数据
-			// this.password = password
-			// if (this.uid == this.id) {
-			// 	//是自己
-			// 	this.update(data, this.type);
-			// } else {
-			// 	//是好友
-			// 	this.updateAlias(data);
-			// }
+		modifyConfirm(upData, password) {
+			if (this.type == 'groupName') {
+				const url = '/grouphome/updata';
+				const data = {
+					gid: this.gid,
+					updata: upData,
+					type: 'name'
+				};
+				this.request(url, data).then(_ => {
+					this.group.name = upData;
+				});
+			}
+			if (this.type == 'notice') {
+				const url = '/grouphome/updata';
+				const data = {
+					gid: this.gid,
+					updata: upData,
+					type: 'notice'
+				};
+				this.request(url, data).then(_ => {
+					this.group.notice = upData;
+				});
+			}
+			if (this.type == 'aliasName') {
+				const url = '/grouphome/updata';
+				const data = {
+					gid: this.gid,
+					uid: this.uid,
+					updata: upData,
+					type: 'aliasName'
+				};
+				this.request(url, data).then(_ => {
+					this.group.aliasName = upData;
+				});
+			}
+			console.log('-----');
+			this.$refs.popup.cancel(); //关闭修改页面
 		},
 
 		// 上传群头像
 		upload() {
-			uni.chooseImage({
-				count: 1, //默认9
-				sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
-				sourceType: ['album'], //从相册选择
-				success: res => {
-					this.tempFilePath = res.tempFilePaths.shift();
-				}
-			});
+			if(this.uid == this.group.userID){
+				uni.chooseImage({
+					count: 1, //默认9
+					sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+					sourceType: ['album'], //从相册选择
+					success: res => {
+						this.tempFilePath = res.tempFilePaths.shift();
+						this.statusBar = true;
+					}
+				});
+			}
 		},
 
 		confirm(e) {
 			this.tempFilePath = '';
 			this.cropFilePath = e.detail.tempFilePath;
+
+			uni.uploadFile({
+				url: this.serverUrl + '/files/upload',
+				filePath: this.cropFilePath,
+				fileType: 'image',
+				name: 'file',
+				formData: {
+					url: 'group', //路径
+					name: this.uid + new Date().getTime(), //文件名
+					token: this.token
+				},
+				success: uploadFileRes => {
+					this.statusBar = false;
+					this.cropFilePath = this.serverUrl + uploadFileRes.data;
+					const url = '/grouphome/updata';
+					const data = {
+						gid: this.gid,
+						updata: uploadFileRes.data,
+						type: 'img'
+					};
+					this.request(url, data);
+				},
+				fail(e) {
+					console.log('this is errormes ' + e.message);
+				}
+			});
 		},
 
 		fail(e) {
@@ -258,10 +333,48 @@ export default {
 
 		cancel() {
 			this.tempFilePath = '';
+			this.statusBar = false;
 		},
 
 		switchChange(e) {
 			console.log(e.target.value);
+			if (e.target.value) {
+				const url = '/grouphome/updata';
+				const data = {
+					gid: this.gid,
+					uid: this.uid,
+					updata: true,
+					type: 'shield',
+					token: this.token
+				};
+				this.request(url, data);
+			} else {
+				const url = '/grouphome/updata';
+				const data = {
+					gid: this.gid,
+					uid: this.uid,
+					updata: false,
+					type: 'shield',
+					token: this.token
+				};
+				this.request(url, data);
+			}
+		},
+		
+		// 删除群成员
+		deleteMember(uid){
+			for (let i in this.members) {
+				if (this.members[i].id == uid){
+					this.members.splice(i,1)
+				}
+			}
+			const url = '/grouphome/delete'
+			const data = {
+				uid,
+				gid: this.gid,
+				token: this.token
+			}
+			this.request(url, data)
 		},
 
 		//退出群聊
@@ -274,7 +387,7 @@ export default {
 			};
 			uni.showModal({
 				content: '确定退出群聊吗？',
-				success() {
+				success: () => {
 					this.request(url, data).then(res => {
 						uni.redirectTo({
 							url: '../index/index'
@@ -411,8 +524,10 @@ export default {
 					font-size: $uni-font-size-base;
 					margin-top: 8rpx;
 					line-height: 40rpx;
+					height: 40rpx;
 					width: 104rpx;
 					overflow: hidden;
+					white-space: nowrap;
 					text-overflow: ellipsis;
 				}
 			}

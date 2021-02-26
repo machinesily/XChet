@@ -13,9 +13,9 @@ Vue.config.productionTip = false
 Vue.component('TopBar',TopBar)
 
 //服务器地址 
-Vue.prototype.serverUrl = 'http://8.129.190.138:3000'
+Vue.prototype.serverUrl = 'http://192.168.0.105:3000'
 //socket
-Vue.prototype.socket = io('http://8.129.190.138:8082')
+Vue.prototype.socket = io('http://192.168.0.105:8082')
 
 Vue.prototype.getStorages = getStorages
 

@@ -16,3 +16,21 @@ exports.exitGroup = (req,res)=>{
   let data = req.body
   dbserver.exitGroup(data,res)
 }
+
+// 邀请群成员
+exports.insertGroupUser = (req,res)=>{
+  let data = req.body
+  dbserver.insertGroupUser(data,res)
+}
+
+// 修改群名
+exports.update = (req,res)=>{
+  let data = req.body
+  dbserver.update(data,res)
+}
+
+// 删除群成员
+exports.deleteGroupUser = (req,res)=>{
+  let data = req.body
+  dbserver.deleteGroupUser(data,res)
+}

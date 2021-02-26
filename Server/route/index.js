@@ -183,13 +183,23 @@ module.exports = function (app) {
   app.post('/grouphome/member', (req, res) => {
     groupHome.groupMember(req,res)
   })
-  // // 添加群成员
-  // app.post('/grouphome/addmember', (req, res) => {
-  //   groupHome.addMember(req,res)
-  // })
+  // 添加群成员
+  app.post('/grouphome/addmember', (req, res) => {
+    groupHome.insertGroupUser(req,res)
+  })
 
   // 退出群
   app.post('/grouphome/exit', (req, res) => {
     groupHome.exitGroup(req,res)
+  })
+
+  // 修改群名
+  app.post('/grouphome/updata', (req, res) => {
+    groupHome.update(req,res)
+  })
+  
+  // 删除群成员
+  app.post('/grouphome/delete', (req, res) => {
+    groupHome.deleteGroupUser(req,res)
   })
 }

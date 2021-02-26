@@ -369,22 +369,24 @@ export default {
 
 		//修改数据
 		update(update, type) {
-			const url = '/user/update'
-			const data = {
-				id: this.uid,
-				data: update,
-				type: type,
-				psw: this.password,
-				token: this.token
-			}
-			this.request(url, data).then(res => {
-				if (this.type == 'mail' || this.type == 'psw'){
-					uni.redirectTo({
-						url: '../login/login?name=' + this.myname
-					});
+			if(update){
+				const url = '/user/update'
+				const data = {
+					id: this.uid,
+					data: update,
+					type: type,
+					psw: this.password,
+					token: this.token
 				}
+				this.request(url, data).then(res => {
+					if (this.type == 'mail' || this.type == 'psw'){
+						uni.redirectTo({
+							url: '../login/login?name=' + this.myname
+						});
+					}
+				})
 				this.$refs.popup.cancel()
-			})
+			}
 		},
 
 		//修改页面的弹出
@@ -399,7 +401,7 @@ export default {
 
 		//修改页面的确认
 		modifyConfirm(data,password) {
-			this.user[this.type] = data;
+			if(data) this.user[this.type] = data;
 			//数据修改，更新数据库数据
 			this.password = password
 			if (this.uid == this.id) {

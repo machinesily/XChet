@@ -298,7 +298,6 @@ export default {
 			right: 12rpx;
 			width: 64rpx;
 			height: 64rpx;
-			// background: #ff5d5b;
 			border-radius: $uni-border-radius-circle;
 			image {
 				padding: 16rpx;
@@ -313,6 +312,11 @@ export default {
 		.name {
 			font-family: PingFangSC-Regular;
 			font-size: 52rpx;
+			height: 74rpx;
+			line-height: 74rpx;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			text-align: center;
 		}
 		.nick {
 			ont-family: PingFangSC-Regular;

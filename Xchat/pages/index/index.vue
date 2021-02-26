@@ -36,6 +36,7 @@ export default {
 		this.join(this.uid);
 		this.ScoketMsg();
 		this.ScoketGroupMsg()
+		this.ScoketJoinGroup();
 		uni.$on('refresh', msg => {
 			this.friends = []
 			this.getFriends()
@@ -97,9 +98,18 @@ export default {
 			});
 		},
 		
+		ScoketJoinGroup() {
+			//tip用来判断是谁发的，0是别人发的
+			this.socket.on('addMemberIndex', _ => {
+				this.friends = []
+				this.getFriends()
+			});
+		},
+		
 		//接收socket发来的群数据
 		ScoketGroupMsg() {
 			this.socket.on('groupMsg', (msg, fromid, gid, fromName) => {
+				console.log(msg);
 				let nowMsg = '';
 				if (msg.type == 0) {
 					nowMsg = msg.message;
@@ -118,13 +128,13 @@ export default {
 						} else {
 							item.message = nowMsg;
 						}
-						item.tip++;
+						if(!item.shield){item.tip++;}
 						//删除原来的数组
 						this.friends.splice(index, 1);
 						//新消息插入最顶部
 						this.friends.unshift(item);
 						break
-					}
+					} 
 				}
 			});
 		},
