@@ -21,7 +21,7 @@ export default {
 			token: '',
 			myname: '',
 			friends: [],
-			group:[],
+			group: [],
 			requestData: 0, //好友申请数
 			requestTime: '' //好友申请时间
 		};
@@ -35,12 +35,12 @@ export default {
 		this.getFriends();
 		this.join(this.uid);
 		this.ScoketMsg();
-		this.ScoketGroupMsg()
+		this.ScoketGroupMsg();
 		this.ScoketJoinGroup();
 		uni.$on('refresh', msg => {
-			this.friends = []
-			this.getFriends()
-		})
+			this.friends = [];
+			this.getFriends();
+		});
 	},
 	methods: {
 		//获取缓存数据
@@ -97,15 +97,15 @@ export default {
 				}
 			});
 		},
-		
+
 		ScoketJoinGroup() {
 			//tip用来判断是谁发的，0是别人发的
 			this.socket.on('addMemberIndex', _ => {
-				this.friends = []
-				this.getFriends()
+				this.friends = [];
+				this.getFriends();
 			});
 		},
-		
+
 		//接收socket发来的群数据
 		ScoketGroupMsg() {
 			this.socket.on('groupMsg', (msg, fromid, gid, fromName) => {
@@ -123,22 +123,24 @@ export default {
 				for (let [index, item] of this.friends.entries()) {
 					if (item.id == gid) {
 						item.lastTime = new Date();
-						if(fromid != this.uid){
+						if (fromid != this.uid) {
 							item.message = fromName + ':' + nowMsg;
 						} else {
 							item.message = nowMsg;
 						}
-						if(!item.shield){item.tip++;}
+						if (!item.shield) {
+							item.tip++;
+						}
 						//删除原来的数组
 						this.friends.splice(index, 1);
 						//新消息插入最顶部
 						this.friends.unshift(item);
-						break
-					} 
+						break;
+					}
 				}
 			});
 		},
-		
+
 		//获取好友聊天列表
 		getFriends() {
 			let url, data;
@@ -148,34 +150,36 @@ export default {
 				token: this.token,
 				state: 0
 			};
-			this.request(url, data).then(res => {
-				for (let item of res) {
-					//处理头像和备注
-					item.imgurl = this.serverUrl + item.imgurl;
-					if (item.alias) {
-						item.name = item.alias;
+			this.request(url, data)
+				.then(res => {
+					for (let item of res) {
+						//处理头像和备注
+						item.imgurl = this.serverUrl + item.imgurl;
+						if (item.alias) {
+							item.name = item.alias;
+						}
 					}
-				}
-				this.friends = res;
-				this.paixu(this.friends, 'lastTime')
-				
-				//获取群列表
-				url = '/index/getgroupmsg';
-				data = {
-					uid: this.uid,
-					token: this.token
-				};
-				return this.request(url, data)
-			}).then(res => {
-				// console.log(res);
-				for (let item of res) {
-					item.imgurl = this.serverUrl + item.imgurl
-					this.socket.emit('group',item.id)
-				}
-				this.group = res
-				this.friends = this.friends.concat(this.group)
-				this.paixu(this.friends, 'lastTime')
-			})
+					this.friends = res;
+					this.paixu(this.friends, 'lastTime');
+
+					//获取群列表
+					url = '/index/getgroupmsg';
+					data = {
+						uid: this.uid,
+						token: this.token
+					};
+					return this.request(url, data);
+				})
+				.then(res => {
+					// console.log(res);
+					for (let item of res) {
+						item.imgurl = this.serverUrl + item.imgurl;
+						this.socket.emit('group', item.id);
+					}
+					this.group = res;
+					this.friends = this.friends.concat(this.group);
+					this.paixu(this.friends, 'lastTime');
+				});
 		},
 
 		//获取申请好友信息
@@ -193,7 +197,6 @@ export default {
 				}
 			});
 		},
-
 
 		//群和好友的排序
 		paixu(arr, obj) {
@@ -225,11 +228,11 @@ export default {
 
 		//跳转到聊天页面
 		toChatRoom(e) {
-			var url = ''
-			if(e.type == 0){
+			var url = '';
+			if (e.type == 0) {
 				url = '/index/updatemsg';
 			} else {
-				url = '/index/updategroupmsg'
+				url = '/index/updategroupmsg';
 			}
 			const fid = e.id;
 			const data = {

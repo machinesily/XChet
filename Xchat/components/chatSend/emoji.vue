@@ -8,6 +8,7 @@
 </template>
 
 <script>
+	import GraphemeSplitter from 'grapheme-splitter'
 	export default {
 		props:{
 			height:{

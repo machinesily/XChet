@@ -70,7 +70,6 @@ export default {
 					type: 'name',
 					data: this.user
 				};
-				this.request(url, data)
 				this.request(url, data).then(res => {
 					console.log(res);
 					if (res > 0) {

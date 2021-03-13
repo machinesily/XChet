@@ -95,7 +95,7 @@ export default {
 			}
 			this.request(url, data)
 			uni.navigateTo({
-				url: '../chatRoom/chatRoom?id=' + fid + '&name=' + e.name + '&type=' + e.type + '&imgurl=' + e.imgurl
+				url: '../chatRoom/chatRoom?id=' + fid + '&name=' + e.name + '&type=' + 0 + '&imgurl=' + e.imgurl
 			});
 		},
 		

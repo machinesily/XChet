@@ -56,7 +56,12 @@ export default {
 	methods: {
 		//返回
 		back() {
-			uni.navigateBack({});
+			let routes = getCurrentPages();
+			routes.length == 1 ?
+			uni.navigateTo({
+				url:'../index/index'
+			}) :
+			uni.navigateBack();
 		},
 
 		//时间处理

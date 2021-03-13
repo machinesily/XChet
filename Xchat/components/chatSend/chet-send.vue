@@ -52,6 +52,7 @@
 
 <script>
 import emoji from './emoji.vue';
+import GraphemeSplitter from 'grapheme-splitter'
 export default {
 	components: {
 		emoji
@@ -179,7 +180,6 @@ export default {
 
 		//表情发送到输入框
 		emotion(e) {
-			// console.log(e);
 			this.msg = this.msg + e;
 			if (this.msg.length > 0) {
 				this.isInput = true;
@@ -191,7 +191,12 @@ export default {
 		//表情的删除按钮
 		emojiBack() {
 			if (this.msg.length > 0) {
-				this.msg = this.msg.substring(0, this.msg.length - 1);
+				let splitter = new GraphemeSplitter();
+				let str = splitter.splitGraphemes(this.msg)
+				this.msg = '';
+				for (let i=0;i<str.length-1;i++) {
+					this.msg += str[i]
+				}
 			} else {
 				this.isInput = false;
 			}
@@ -324,7 +329,7 @@ export default {
 .confirm {
 	flex: none;
 	width: 100rpx;
-	height: 42rpx;
+	height: 36rpx;
 	text-align: center;
 	margin: 10rpx 0;
 	padding: 10rpx;

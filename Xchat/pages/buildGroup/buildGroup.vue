@@ -66,8 +66,12 @@ export default {
 	},
 	methods: {
 		back(){
-			uni.navigateBack({
-			})
+			let routes = getCurrentPages();
+			routes.length == 1 ?
+			uni.navigateTo({
+				url:'../index/index'
+			}) :
+			uni.navigateBack();
 		},
 
 		//获取缓存数据

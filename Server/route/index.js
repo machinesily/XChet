@@ -42,6 +42,7 @@ module.exports = function (app) {
   //用户或邮箱是否占用判断
   app.post('/signup/judge', (req, res) => {
     signup.judge(req, res)
+    console.log('---');
   })
 
   //登陆页面

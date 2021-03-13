@@ -19,7 +19,7 @@
 					<view class="member-list" v-for="(item, key) in members" :key="key">
 						<view class="img-wrapper">
 							<image src="../../static/images/groupHome/delete.png" class="delete" v-show="manage" @tap="deleteMember(item.id)"/>
-							<image :src="item.imgurl" class="member-img" />
+							<image :src="item.imgurl" class="member-img" @tap="toUserHome(item)"/>
 						</view>
 						<view class="member-name">{{ item.name }}</view>
 					</view>
@@ -30,30 +30,32 @@
 				</view>
 			</view>
 			<view class="column">
-				<info @infoTap="modify('群名称', 'groupName', group.name)">
-					<view slot="title">群名称</view>
-					<view slot="content">{{ group.name }}</view>
-				</info>
-				<!-- 头像 -->
-				<info>
-					<view slot="title">群头像</view>
-					<view slot="content">
-						<view class="group-img"><image :src="cropFilePath" @tap="upload" /></view>
+				<view class="row" @tap="modify('群名称', 'groupName', group.name)">
+					<view class="name">群名称</view>
+					<view class="content">{{ group.name }}</view>
+					<image src="../../static/images/common/more.png" mode="aspectFit" class="more" v-if="this.uid == this.group.userID"/>
+				</view>
+				<view class="row"  @tap="upload">
+					<view class="name">群头像</view>
+					<view class="content">
+						<view class="group-img"><image :src="cropFilePath" /></view>
 						<image-cropper :src="tempFilePath" @confirm="confirm" @cancel="cancel"></image-cropper>
 					</view>
-				</info>
-				<info @infoTap="modify('群公告', 'notice', group.notice)">
-					<view slot="title">群公告</view>
-					<view slot="content">{{ group.notice }}</view>
-				</info>
-				<info @infoTap="modify('群内名', 'aliasName', group.aliasName)">
-					<view slot="title">群内名</view>
-					<view slot="content">{{ group.aliasName }}</view>
-				</info>
-				<info :more="false">
-					<view slot="title">免打扰</view>
-					<view slot="right" class="disturb"><switch :checked="group.shield" @change="switchChange" color="rgba(255,228,49,1)" /></view>
-				</info>
+				</view>
+				<view class="row" @tap="modify('群公告', 'notice', group.notice)">
+					<view class="name">群公告</view>
+					<view class="content">{{ group.notice }}</view>
+					<image src="../../static/images/common/more.png" mode="aspectFit" class="more" v-if="this.uid == this.group.userID"/>
+				</view>
+				<view class="row" @tap="modify('群内名', 'aliasName', group.aliasName)">
+					<view class="name">群内名</view>
+					<view class="content">{{ group.aliasName }}</view>
+					<image src="../../static/images/common/more.png" mode="aspectFit" class="more" v-if="this.uid == this.group.userID"/>
+				</view>
+				<view class="row">
+					<view class="name">免打扰</view>
+					<view class="disturb"><switch :checked="group.shield" @change="switchChange" color="rgba(255,228,49,1)" /></view>
+				</view>
 			</view>
 			<view class="exit-wrapper"><view class="exit" @tap="exit">退出群聊</view></view>
 		</view>
@@ -124,6 +126,15 @@ export default {
 	},
 	methods: {
 		back() {
+			let routes = getCurrentPages();
+			routes.length == 1 ?
+			uni.navigateTo({
+				url: '../chatRoom/chatRoom?id='
+				 + this.gid 
+				 + '&name=' + this.group.name 
+				 + '&type=1'
+				 + '&imgurl=' + this.group.imgurl
+			}) :
 			uni.navigateBack();
 		},
 
@@ -295,7 +306,7 @@ export default {
 				});
 			}
 		},
-
+		
 		confirm(e) {
 			this.tempFilePath = '';
 			this.cropFilePath = e.detail.tempFilePath;
@@ -376,6 +387,14 @@ export default {
 			}
 			this.request(url, data)
 		},
+		
+		// 跳转好友首页
+		toUserHome(user){
+			console.log(user);
+			uni.navigateTo({
+				url:'../userHome/userHome?id='+user.id
+			})
+		},
 
 		//退出群聊
 		exit() {
@@ -387,12 +406,14 @@ export default {
 			};
 			uni.showModal({
 				content: '确定退出群聊吗？',
-				success: () => {
-					this.request(url, data).then(res => {
-						uni.redirectTo({
-							url: '../index/index'
+				success: res => {
+					if(res.confirm){
+						this.request(url, data).then(res => {
+							uni.redirectTo({
+								url: '../index/index'
+							});
 						});
-					});
+					}
 				}
 			});
 		}
@@ -450,7 +471,7 @@ export default {
 		.time {
 			font-size: $uni-font-size-base;
 			color: $uni-text-color-grey;
-			margin-left: 250rpx;
+			margin-left: 320rpx;
 			line-height: 66rpx;
 		}
 		.notice {
@@ -481,7 +502,7 @@ export default {
 		.manage {
 			font-size: $uni-font-size-base;
 			color: $uni-text-color-grey;
-			margin-left: 400rpx;
+			margin-left: 430rpx;
 			line-height: 40rpx;
 		}
 		.manage-img {
@@ -554,6 +575,48 @@ export default {
 				line-height: 40rpx;
 				width: 104rpx;
 			}
+		}
+	}
+	
+	.column{
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		.row {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			height: 112rpx;
+			&:active{
+				background-color: $uni-bg-color-hover;
+			}
+		}
+		.name {
+			flex: none;
+			padding: 0 $uni-spacing-row-base;
+			font-size: $uni-font-size-lg;
+			color: $uni-text-color;
+			line-height: 112rpx;
+		}
+		.content {
+			flex: auto;
+			font-size: $uni-font-size-lg;
+			color: $uni-text-color-grey;
+			line-height: 112rpx;
+			width: 526rpx;
+			min-height: 112rpx;
+			display: -webkit-box;
+			-webkit-line-clamp: 1;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+		.more {
+			width: 25rpx;
+			height: 40rpx;
+			padding-right: 32rpx;
+		}
+		.disturb{
+			padding-left: 480rpx;
 		}
 	}
 	.exit-wrapper {

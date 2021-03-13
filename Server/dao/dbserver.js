@@ -940,8 +940,8 @@ exports.inserGroupMsg = function(gid,uid,msg,res){
     if (err) {
       console.log(err);
     } else {
-      console.log(result);
-      console.log('插入信息成功');
+      // console.log(result);
+      // console.log('插入信息成功');
     }
   })
 
@@ -952,7 +952,7 @@ exports.inserGroupMsg = function(gid,uid,msg,res){
     if (err) {
       console.log('最后通讯数据更新出错');
     } else {
-      console.log('最后通讯数据更新成功');
+      // console.log('最后通讯数据更新成功');
     }
   })
 
@@ -969,7 +969,7 @@ exports.inserGroupMsg = function(gid,uid,msg,res){
           if (err) {
             console.log(err);
           } else {
-            console.log(res);
+            // console.log(res);
           }
         })
     }
@@ -1150,7 +1150,7 @@ exports.update = (data, res) => {
         res.send({status:500})
       }else{
        res.send({status:200})
-       console.log(result);
+      //  console.log(result);
       }
     })
   }

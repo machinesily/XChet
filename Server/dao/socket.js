@@ -32,7 +32,7 @@ module.exports = (io) => {
         if (users.hasOwnProperty(socket.name)) {
           delete users[socket.name]
         }
-        // console.log(socket.id + '离开');
+        console.log(socket.id + '离开');
       })
 
 

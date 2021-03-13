@@ -1,7 +1,6 @@
 <template>
 	<view>
 		<view class="add-member" :style="{ top: top + 'px' }">
-			<view class="status_bar"></view>
 			<top-bar class="top-bar">
 				<view class="cancel" slot="left" @tap="cancel()">取消</view>
 				<view class="title" slot="center">邀请好友</view>
@@ -50,7 +49,7 @@ export default {
 	data() {
 		return {
 			top: 1000,
-			newFriends:[]
+			newFriends:[],
 		};
 	},
 	methods: {
@@ -84,7 +83,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .top-bar {
 	background-color: rgba(244, 244, 244, 0.96);
 	border-bottom: 1px solid $uni-border-color; //底部分割线
@@ -112,13 +111,15 @@ export default {
 	z-index: 100;
 	left: 0;
 	right: 0;
+	top: 0;
+	bottom: 0;
 	height: 100%;
 	width: 100%;
 	background-color: #ffffff;
 	transition: top 1s;
 }
 .main {
-	padding-top: 108rpx;
+	padding-top: 122rpx;
 	.column{
 		display: flex;
 		flex-direction: column;

@@ -66,6 +66,7 @@ export default {
 		cancel() {
 			this.popup = false;
 			this.top = 1000;
+			this.password ? this.password='' : ''
 		},
 
 		confirm() {

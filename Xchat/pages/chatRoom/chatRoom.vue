@@ -132,9 +132,12 @@ export default {
 		},
 
 		back() {
-			uni.navigateBack({
-				delta: 1
-			});
+			let routes = getCurrentPages();
+			routes.length == 1 ?
+			uni.navigateTo({
+				url:'../index/index'
+			}) :
+			uni.navigateBack();
 		},
 
 		//获取聊天数据
@@ -161,7 +164,7 @@ export default {
 					token: this.token
 				};
 			}
-
+			console.log(url);
 			this.request(url, data).then(res => {
 				if (res.length > 0) {
 					for (var i in res) {
@@ -224,6 +227,7 @@ export default {
 
 		//获取子组件输入框传来的值,发送给后端并插入数组中
 		sendMsg(e) {
+			console.log(e.message.length);
 			this.sendBack(e);
 			this.receiveMsg(e, this.uid, this.imgurl, 0);
 		},
@@ -309,7 +313,6 @@ export default {
 		//接收输入框的信息显示
 		receiveMsg(e, id, imgurl, tip) {
 			//tip=0表示自己发的，tip=1表示收到的
-			console.log(e);
 			//显示到主页面
 			if (e.type == 3) {
 				e.message = JSON.parse(e.message);
@@ -352,10 +355,7 @@ export default {
 						console.log(msg.message);
 						msg.message.record = this.serverUrl + msg.message.record;
 					} else if (msg.type == 3) {
-						//#ifdef H5
 						msg.message = JSON.parse(msg.message);
-						//#endif
-						console.log(msg.message);
 					}
 
 					let data = {
@@ -477,9 +477,9 @@ export default {
 		//跳转到群聊管理页面
 		goGroupHome() {
 			this.$refs.send.cancel()
-			setTimeout(() => {
-				this.getElementStyle()
-			},300)
+			// setTimeout(() => {
+			// 	this.getElementStyle()
+			// },300)
 			uni.navigateTo({
 				url: '../groupHome/groupHome?gid=' + this.fid
 			});

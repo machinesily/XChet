@@ -69,6 +69,11 @@ export default {
 	methods: {
 		//返回上一页
 		back() {
+			let routes = getCurrentPages();
+			routes.length == 1 ?
+			uni.navigateTo({
+				url:'../index/index'
+			}) :
 			uni.navigateBack();
 		},
 

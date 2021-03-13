@@ -3,7 +3,6 @@
 		<view class="row" @tap="infoTap">
 			<view class="title"><slot name="title"></slot></view>
 			<view class="content"><slot name="content"></slot></view>
-			<view ><slot name="right"></slot></view>
 			<image class="more" v-if="more" src="../../static/images/common/more.png" mode="aspectFit"/>
 		</view>
 	</view>

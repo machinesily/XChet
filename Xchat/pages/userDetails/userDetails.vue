@@ -75,6 +75,9 @@
 		</view>
 		<!-- 弹出修改页面 -->
 		<popup ref="popup" @confirm="modifyConfirm" :title="title" :oldData="oldData" :needPassword="needPassword" />
+		<uni-popup ref="msg" type="message">
+		    <uni-popup-message style="text-align: center;" type="success" message="修改成功" :duration="2000"></uni-popup-message>
+		</uni-popup>
 	</view>
 </template>
 
@@ -105,12 +108,17 @@ export default {
 		}
 	},
 	onBackPress() {
-		let pages = getCurrentPages();
-		let prevPage = pages[pages.length - 2];
-		if(this.cropFilePath){
-			this.$set(prevPage.user, 'imgurl', this.cropFilePath)
-			prevPage.change = true
+		console.log(this.$refs.popup.popup);
+		if(this.$refs.popup.popup){
+			this.$refs.popup.cancel()
+			return true;
 		}
+		// let pages = getCurrentPages();
+		// let prevPage = pages[pages.length - 2];
+		// if(this.cropFilePath){
+		// 	this.$set(prevPage.user, 'imgurl', this.cropFilePath)
+		// 	prevPage.change = true
+		// }
 	},
 	data() {
 		const currentDate = this.getDate({
@@ -380,12 +388,14 @@ export default {
 				}
 				this.request(url, data).then(res => {
 					if (this.type == 'mail' || this.type == 'psw'){
+						uni.clearStorage()
 						uni.redirectTo({
 							url: '../login/login?name=' + this.myname
 						});
 					}
 				})
 				this.$refs.popup.cancel()
+				this.$refs.msg.open()
 			}
 		},
 
