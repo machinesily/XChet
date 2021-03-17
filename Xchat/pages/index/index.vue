@@ -4,8 +4,12 @@
 		<top-bar class="top-bar">
 			<navigator :url="'../userHome/userHome?id=' + uid" slot="left" class="mine" hover-class="none"><image :src="imgurl" /></navigator>
 			<image src="../../static/images/index/search.png" slot="right" class="search" @click="search" />
-			<image src="../../static/images/index/add.png" slot="right" class="add" @click="toBulidGroup" />
+			<image src="../../static/images/index/add.png" slot="right" class="add" @click="isMore = !isMore" />
 		</top-bar>
+		<view class="more" v-show="isMore">
+			<view class="scan" @tap="toScan"><image src="../../static/images/index/scan.png" mode=""></image>扫一扫</view>
+			<view class="buildGroup" @tap="toBulidGroup"><image src="../../static/images/index/bulid.png" mode=""></image>去建群</view>
+		</view>
 		<view class="main"><index-friends :friends="friends" :requestData="requestData" :requestTime="requestTime" @toChatRoom="toChatRoom" /></view>
 	</view>
 </template>
@@ -23,7 +27,8 @@ export default {
 			friends: [],
 			group: [],
 			requestData: 0, //好友申请数
-			requestTime: '' //好友申请时间
+			requestTime: '', //好友申请时间,
+			isMore: false
 		};
 	},
 	components: {
@@ -225,6 +230,18 @@ export default {
 				url: '../buildGroup/buildGroup'
 			});
 		},
+		
+		toScan() {
+			uni.scanCode({
+				success: function(res) {
+					console.log('条码类型：' + res.scanType);
+					console.log('条码内容：' + res.result);
+					uni.navigateTo({
+						url: res.result
+					})
+				}
+			})
+		},
 
 		//跳转到聊天页面
 		toChatRoom(e) {
@@ -267,15 +284,18 @@ export default {
 .top-bar {
 	background-color: rgba(244, 244, 244, 0.96);
 	box-shadow: 0 1px $uni-border-color;
+
 	.mine {
 		width: 68rpx;
 		height: 68rpx;
+
 		image {
 			width: 68rpx;
 			height: 68rpx;
 			border-radius: $uni-border-radius-base;
 		}
 	}
+
 	.search,
 	.add {
 		width: 52rpx;
@@ -283,7 +303,35 @@ export default {
 		margin-left: $uni-spacing-row-base;
 	}
 }
+.more {
+	width: 240rpx;
+	height: 200rpx;
+	background-color: #f4f4f4;
+	position: absolute;
+	top: 88rpx;
+	right: 10rpx;
+	z-index: 10;
+	text-align: center;
+	.scan, .buildGroup {
+		width: 240rpx;
+		height: 100rpx;
+		line-height: 90rpx;
+		border-bottom: 1px solid #F5F5F5;
+		image {
+			position: relative;
+			top: 10rpx;
+			right: 20rpx;
+			width: 50rpx;
+			height: 50rpx;
+		}
+	}
+}
 
+/* #ifdef APP-PLUS */
+	.more {
+		top: 150rpx;
+	}
+/* #endif */
 .main {
 	padding-top: 88rpx;
 	width: 100%;

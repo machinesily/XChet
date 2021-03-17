@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "index-friends": "/components/indexFriends/indexFriends"
+  }
+}

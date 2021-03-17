@@ -15,6 +15,11 @@
 					<image-cropper :src="tempFilePath" @confirm="confirm" @cancel="cancel"></image-cropper>
 				</view>
 			</info>
+			<!-- 二维码 -->
+			<info v-if="id == uid" @infoTap="goQrCode" :more="true">
+				<view slot="title">二维码</view>
+				<view slot="content"><image src="../../static/images/qrcode.png" class="qrcode"/></view>
+			</info>
 			<!-- 签名 -->
 			<info :more="id == uid" @infoTap="modify('签名', 'explain', user.explain, false)">
 				<view slot="title">签名</view>
@@ -204,6 +209,13 @@ export default {
 				//处理性别显示
 				this.sexJudge(res.sex);
 				this.user = res;
+			})
+		},
+		
+		// 跳转到二维码页面
+		goQrCode(){
+			uni.navigateTo({
+				url: '../qr-code/qr-code'
 			})
 		},
 
@@ -549,5 +561,12 @@ export default {
 			margin-bottom: 50rpx;
 		}
 	}
+}
+.qrcode {
+	width: 50rpx;
+	height: 30px;
+	position: absolute;
+	right: 40px;
+	margin-top: 15px;
 }
 </style>

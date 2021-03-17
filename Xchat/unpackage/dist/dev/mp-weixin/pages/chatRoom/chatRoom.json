@@ -1,0 +1,7 @@
+{
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "chat-room": "/components/chat-room/chat-room",
+    "send": "/components/chatSend/chet-send"
+  }
+}

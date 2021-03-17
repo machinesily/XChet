@@ -27,6 +27,8 @@
 			"path": "pages/buildGroup/buildGroup"
 		}, {
 			"path": "pages/groupHome/groupHome"
+		}, {
+			"path": "pages/qr-code/qr-code"
 		}
 	],
 	"globalStyle": {

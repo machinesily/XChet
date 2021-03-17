@@ -1,0 +1,1 @@
+<view><view data-event-opts="{{[['tap',[['infoTap',['$event']]]]]}}" class="row" bindtap="__e"><view class="title"><slot name="title"></slot></view><view class="content"><slot name="content"></slot></view><block wx:if="{{more}}"><image class="more" src="../../static/images/common/more.png" mode="aspectFit"></image></block></view></view>
